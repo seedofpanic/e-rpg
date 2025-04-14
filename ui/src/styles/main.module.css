@@ -1,0 +1,898 @@
+/* Main layout styles */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1a1a2e;
+    color: #e6e6e6;
+}
+
+.container {
+    padding: 0;
+    display: flex;
+    height: 100vh;
+}
+
+/* Main content area */
+.mainContent {
+    flex: 1;
+    height: 100vh;
+    overflow-y: auto;
+    background-color: #1a1a2e;
+}
+
+/* Sidebar styles */
+.sidebar {
+    background-color: #16213e;
+    padding: 20px;
+    height: 100vh;
+    overflow-y: auto;
+    border-right: 1px solid #2a2a4a;
+    width: 300px;
+    flex-shrink: 0;
+}
+
+.logoContainer {
+    text-align: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #2a2a4a;
+}
+
+.logoContainer h1 {
+    font-weight: bold;
+    color: #f1c40f;
+    margin-bottom: 0;
+}
+
+.tagline {
+    color: #bdc3c7;
+    font-size: 0.9rem;
+}
+
+/* Scene editing in sidebar */
+.currentScene {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.currentScene h5 {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.currentScene p {
+    margin-bottom: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.7);
+    white-space: pre-line;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.currentScene textarea {
+    font-size: 0.85rem;
+    resize: vertical;
+}
+
+.characterItem {
+    display: flex;
+    align-items: center;
+    background-color: #2c3e50;
+    border: none;
+    color: #ecf0f1;
+    margin-bottom: 5px;
+    padding: 8px;
+    border-radius: 4px;
+    width: 100%;
+    cursor: pointer;
+}
+
+.characterItem:hover {
+    background-color: #34495e;
+}
+
+.characterItem.active {
+    background-color: #3498db;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #3498db;
+    margin-right: 10px;
+}
+
+.leaderAvatar {
+    border: 3px solid #f1c40f !important;
+    box-shadow: 0 0 5px rgba(241, 196, 15, 0.7);
+}
+
+/* Chat area styles */
+.chatArea {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    flex-grow: 1;
+}
+
+.chatContainer {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.welcomeMessage {
+    text-align: center;
+    margin: 50px auto;
+    max-width: 600px;
+    padding: 20px;
+    background-color: #16213e;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.welcomeMessage h2 {
+    color: #f1c40f;
+    margin-bottom: 15px;
+}
+
+.inputContainer {
+    padding: 15px;
+    background-color: #16213e;
+    border-top: 1px solid #2a2a4a;
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+}
+
+/* Message styling */
+.message {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.messageAvatar {
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.messageAvatar img,
+.messageAvatar .characterAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-size: cover;
+    background-position: center;
+}
+
+.messageContent {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #2c3e50;
+}
+
+.messageContent h5 {
+    margin: 0 0 5px;
+    font-size: 1rem;
+    color: #3498db;
+}
+
+.messageContent p {
+    margin: 0;
+    color: #ecf0f1;
+}
+
+.systemMessage {
+    background-color: rgba(52, 152, 219, 0.2);
+    border-left: 3px solid #3498db;
+    padding-left: 15px;
+}
+
+.gmMessage .messageContent {
+    background-color: #0f3460;
+}
+
+/* Thinking message styling */
+.thinkingMessage {
+    opacity: 0.7;
+    justify-content: center;
+}
+
+.thinkingMessage .messageContent {
+    background-color: #2a2a4a;
+    padding: 8px 15px;
+    max-width: 120px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+/* Button styling */
+.btnPrimary {
+    background-color: #e94560;
+    border-color: #e94560;
+    color: white;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btnPrimary:hover, .btnPrimary:focus {
+    background-color: #d63553;
+    border-color: #d63553;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(233, 69, 96, 0.3);
+}
+
+.btnPrimary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(233, 69, 96, 0.3);
+}
+
+.btnPrimary:disabled {
+    background-color: #6c2635;
+    border-color: #6c2635;
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.btnSecondary {
+    background-color: #1f4068;
+    border-color: #1f4068;
+    color: white;
+}
+
+.btnSecondary.active {
+    background-color: #3498db;
+    border-color: #3498db;
+}
+
+.btnOutlineLight {
+    color: #bdc3c7;
+    border-color: #2a2a4a;
+}
+
+.btnOutlineLight:hover {
+    background-color: #1f4068;
+    color: #e6e6e6;
+}
+
+/* Form controls */
+.formControl {
+    background-color: #1a1a2e;
+    border: 2px solid #2a2a4a;
+    color: #e6e6e6;
+    padding: 12px 16px;
+    border-radius: 8px;
+    width: 100%;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.formControl:focus {
+    background-color: #1a1a2e;
+    border-color: #3498db;
+    color: #e6e6e6;
+    outline: none;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(52, 152, 219, 0.25);
+}
+
+/* Chat input group */
+.inputGroup {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    height: 48px;
+}
+
+.inputGroup .formControl {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: none;
+    height: 100%;
+    padding: 12px 16px;
+}
+
+.inputGroup .btnPrimary {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    padding: 0 20px;
+    height: 100%;
+    min-width: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.inputGroup .btnSecondary {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px;
+    min-width: 100px;
+}
+
+/* Modal styles */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background-color: #16213e;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+.modalHeader {
+    padding: 15px 20px;
+    border-bottom: 1px solid #2a2a4a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modalHeader h5 {
+    margin: 0;
+    color: #f1c40f;
+    font-weight: 600;
+}
+
+.modalBody {
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.modalFooter {
+    padding: 15px 20px;
+    border-top: 1px solid #2a2a4a;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Current persona styles */
+.currentPersona {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.currentPersona h5 {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.personaPreview {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.personaAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #f1c40f;
+    margin-right: 10px;
+}
+
+.personaInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.personaInfo strong {
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+}
+
+.personaInfo small {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+/* Persona management modal */
+.personaModal {
+    max-width: 800px;
+    width: 90%;
+}
+
+.personaGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+    margin-top: 15px;
+}
+
+.personaCard {
+    background-color: rgba(52, 73, 94, 0.5);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.personaCard:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.personaCardHeader {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.personaCardBody {
+    padding: 12px;
+    flex-grow: 1;
+}
+
+.personaCardFooter {
+    padding: 12px;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.personaAvatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    margin-right: 12px;
+    border: 2px solid #f1c40f;
+    cursor: pointer;
+}
+
+.avatarImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.personaMeta {
+    flex-grow: 1;
+}
+
+.personaName {
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+.personaDescription {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 0;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.personaActions {
+    display: flex;
+    margin-top: 4px;
+}
+
+.avatarUpload {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 0 auto;
+    cursor: pointer;
+    border: 3px solid #f1c40f;
+    overflow: hidden;
+}
+
+.avatarPreview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatarOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.avatarOverlay i {
+    font-size: 24px;
+    color: white;
+}
+
+.avatarUpload:hover .avatarOverlay {
+    opacity: 1;
+}
+
+.personaForm {
+    padding: 10px;
+}
+
+/* Message input controls */
+.messageControls {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 15px;
+    padding: 0 10px;
+}
+
+@media (min-width: 768px) {
+    .messageControls {
+        flex-direction: row;
+        align-items: center;
+        gap: 20px;
+        padding: 0;
+    }
+
+    .personaSelector {
+        margin-bottom: 0;
+        margin-right: 0;
+        min-width: 100px;
+        display: flex;
+        align-items: center;
+    }
+}
+
+/* Persona selector in chat input area */
+.personaSelector {
+    position: relative;
+    z-index: 10;
+    min-width: 200px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.activePerson {
+    display: flex;
+    align-items: center;
+    padding: 8px 14px;
+    background-color: rgba(31, 64, 104, 0.8);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.activePerson:hover {
+    background-color: rgba(41, 84, 134, 0.9);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.activePerson img {
+    margin-right: 8px;
+}
+
+.activePerson span {
+    flex-grow: 1;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.activePerson i {
+    margin-left: 8px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.personaAvatarSmall {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #f1c40f;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.personaDropdown {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    width: 100%;
+    max-width: 300px;
+    background-color: #16213e;
+    border-radius: 8px;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    margin-bottom: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 6px;
+}
+
+.personaOption {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+    margin-bottom: 2px;
+}
+
+.personaOption:hover {
+    background-color: rgba(52, 152, 219, 0.2);
+    transform: translateX(2px);
+}
+
+.personaOption.active {
+    background-color: rgba(52, 152, 219, 0.3);
+    border-left: 3px solid #3498db;
+}
+
+.personaOption img {
+    margin-right: 10px;
+}
+
+.personaOption span {
+    flex-grow: 1;
+    font-size: 0.9rem;
+}
+
+.defaultBadge {
+    background-color: #f1c40f;
+    color: #000;
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-left: 5px;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.dropdownDivider {
+    height: 1px;
+    margin: 10px 5px;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.personaManageOption, 
+.personaCreateOption {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    border-radius: 6px;
+    margin-top: 2px;
+}
+
+.personaManageOption {
+    color: #f1c40f;
+}
+
+.personaCreateOption {
+    color: #2ecc71;
+}
+
+.personaManageOption:hover {
+    background-color: rgba(241, 196, 15, 0.1);
+    transform: translateX(2px);
+}
+
+.personaCreateOption:hover {
+    background-color: rgba(46, 204, 113, 0.1);
+    transform: translateX(2px);
+}
+
+.personaManageOption i,
+.personaCreateOption i {
+    margin-right: 10px;
+    font-size: 1.1rem;
+}
+
+.personaManageOption span,
+.personaCreateOption span {
+    flex-grow: 1;
+    font-size: 0.9rem;
+}
+
+/* Add these styles to the existing CSS file */
+
+.sidebarSection {
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #333;
+}
+
+.characterActions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.characterSkillRolls {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.characterNameRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.characterAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.characterName {
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+}
+
+.noCharacters {
+  color: #757575;
+  font-style: italic;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* Roll button styles */
+.rollButton {
+  background-color: #f1c40f;
+  color: #222;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  padding: 0;
+}
+
+.rollButton:hover {
+  background-color: #f39c12;
+}
+
+.rollButton i {
+  font-size: 16px;
+}
+
+.saveGameSection {
+  background-color: rgba(26, 26, 46, 0.4);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebarSaveInput {
+  font-size: 0.85em;
+}
+
+.sidebarSaveInput button {
+  padding: 6px 10px;
+  font-size: 0.85em;
+}
+
+/* Message Controls */
+.messageControls {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: transparent;
+}
+
+/* Notification Test Button */
+.notificationTest {
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.iconButton {
+  background: none;
+  border: none;
+  color: #adb5bd;
+  font-size: 18px;
+  padding: 5px;
+  cursor: pointer;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconButton:hover {
+  color: #fff;
+} 

@@ -1,0 +1,207 @@
+.skill-roll-container {
+  margin: 10px 0;
+  position: relative;
+}
+
+.skill-roll-toggle {
+  background-color: #7c4dff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.skill-roll-toggle:hover {
+  background-color: #651fff;
+}
+
+.skill-roll-menu {
+  position: absolute;
+  z-index: 100;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 15px;
+  width: 320px;
+  max-height: 500px;
+  overflow-y: auto;
+  margin-top: 10px;
+  border: 1px solid #e0e0e0;
+  right: 0;
+}
+
+.skill-roll-menu h3 {
+  margin-top: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eeeeee;
+  font-size: 18px;
+}
+
+.skill-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.skill-category {
+  margin-bottom: 10px;
+}
+
+.skill-category-title {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #555;
+  font-weight: 600;
+}
+
+.skill-category-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-roll-button {
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #333;
+}
+
+.skill-roll-button:hover {
+  background-color: #e8e8e8;
+}
+
+.skill-roll-button.proficient {
+  background-color: #e3f2fd;
+  border-color: #bbdefb;
+  color: #1565c0;
+}
+
+.skill-roll-button.proficient:hover {
+  background-color: #bbdefb;
+}
+
+/* For small screens */
+@media (max-width: 480px) {
+  .skill-roll-menu {
+    width: 280px;
+    left: 0;
+  }
+}
+
+/* Styling for skill roll buttons in chat messages */
+
+.skill-roll-container {
+  margin-top: 8px;
+  position: relative;
+  align-self: flex-end;
+}
+
+.skill-roll-button {
+  background-color: #4a5568;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.skill-roll-button:hover {
+  background-color: #2d3748;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.skill-roll-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.skill-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background-color: #2d3748;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  width: 180px;
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+}
+
+.skill-option {
+  background-color: transparent;
+  color: white;
+  border: none;
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  margin-bottom: 2px;
+}
+
+.skill-option:hover {
+  background-color: #4a5568;
+}
+
+.skill-option:last-child {
+  margin-bottom: 0;
+}
+
+/* Make scrollbar more visible on the skill dropdown */
+.skill-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.skill-dropdown::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+}
+
+.skill-dropdown::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+}
+
+/* Light theme support */
+@media (prefers-color-scheme: light) {
+  .skill-dropdown {
+    background-color: #f7fafc;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .skill-option {
+    color: #2d3748;
+  }
+  
+  .skill-option:hover {
+    background-color: #edf2f7;
+  }
+  
+  .skill-dropdown::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+  }
+  
+  .skill-dropdown::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+} 

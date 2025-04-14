@@ -1,0 +1,297 @@
+/* Notifications Container */
+.notificationsContainer {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 320px;
+  max-width: 90vw;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+/* Toast Notification */
+.toast {
+  display: flex;
+  align-items: center;
+  background-color: #343a40;
+  border-radius: 6px;
+  padding: 12px 15px;
+  margin-bottom: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: #fff;
+  animation: slideIn 0.3s ease, fadeOut 0.5s ease forwards;
+  animation-delay: 0s, calc(var(--duration, 3000ms) - 500ms);
+  pointer-events: auto;
+  overflow: hidden;
+  position: relative;
+}
+
+.toast::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.5);
+  width: 100%;
+  animation: progress linear forwards;
+  animation-duration: var(--duration, 3000ms);
+}
+
+/* Toast types */
+.success {
+  background-color: #28a745;
+  border-left: 4px solid #1e7e34;
+}
+
+.error {
+  background-color: #dc3545;
+  border-left: 4px solid #bd2130;
+}
+
+.warning {
+  background-color: #ffc107;
+  border-left: 4px solid #d39e00;
+  color: #212529;
+}
+
+.info {
+  background-color: #17a2b8;
+  border-left: 4px solid #138496;
+}
+
+.loading {
+  background-color: #6c757d;
+  border-left: 4px solid #5a6268;
+}
+
+/* Toast Icon */
+.toastIcon {
+  margin-right: 12px;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Toast Content */
+.toastContent {
+  flex: 1;
+}
+
+.toastContent p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Dismiss Button */
+.dismissButton {
+  background: none;
+  border: none;
+  color: currentColor;
+  opacity: 0.6;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 10px;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+
+.dismissButton:hover {
+  opacity: 1;
+}
+
+/* Loading Spinner */
+.loadingSpinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+/* Confirmation Dialog Backdrop */
+.modalBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+/* Confirmation Dialog */
+.confirmationDialog {
+  background-color: #343a40;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90vw;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+  animation: scaleIn 0.2s ease;
+}
+
+/* Dialog Header */
+.dialogHeader {
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dialogHeader h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.dialogHeader.danger {
+  background-color: rgba(220, 53, 69, 0.2);
+}
+
+.dialogHeader.warning {
+  background-color: rgba(255, 193, 7, 0.2);
+}
+
+.dialogHeader.info {
+  background-color: rgba(23, 162, 184, 0.2);
+}
+
+/* Dialog Content */
+.dialogContent {
+  padding: 20px;
+  color: #e9ecef;
+}
+
+.dialogContent p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Dialog Actions */
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 15px 20px;
+  gap: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Dialog Buttons */
+.cancelButton {
+  background-color: transparent;
+  color: #e9ecef;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.cancelButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.confirmButton {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border: none;
+  transition: all 0.2s;
+  color: #fff;
+}
+
+.confirmButton.danger {
+  background-color: #dc3545;
+}
+
+.confirmButton.danger:hover {
+  background-color: #bd2130;
+}
+
+.confirmButton.warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.confirmButton.warning:hover {
+  background-color: #d39e00;
+}
+
+.confirmButton.info {
+  background-color: #17a2b8;
+}
+
+.confirmButton.info:hover {
+  background-color: #138496;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+} 

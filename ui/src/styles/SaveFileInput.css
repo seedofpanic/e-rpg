@@ -1,0 +1,189 @@
+/* Base styles for the save file container */
+.save-file-container {
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #f7f7f7;
+  border: 1px solid #e0e0e0;
+}
+
+/* Dark mode variant for the container */
+.save-file-container.dark-mode {
+  background-color: #1f4068;
+  border-color: #2a2a4a;
+  color: #e6e6e6;
+}
+
+/* Form layout for editing save path */
+.save-file-form {
+  width: 100%;
+}
+
+.save-file-input-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Input styling */
+.save-file-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Common button styles */
+.save-file-submit,
+.save-file-cancel,
+.save-file-edit,
+.save-file-save-btn,
+.save-file-load-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+/* Submit button styles */
+.save-file-submit {
+  background-color: #4caf50;
+  color: white;
+  min-width: 80px;
+}
+
+.save-file-submit:hover {
+  background-color: #45a049;
+}
+
+/* Cancel button styles */
+.save-file-cancel {
+  background-color: #f44336;
+  color: white;
+  min-width: 80px;
+}
+
+.save-file-cancel:hover {
+  background-color: #d32f2f;
+}
+
+/* Display container layout */
+.save-file-display {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Path container layout */
+.save-file-path-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Path label styling */
+.save-file-label {
+  font-weight: bold;
+  margin-right: 5px;
+  white-space: nowrap;
+}
+
+/* Path display styling */
+.save-file-path {
+  flex: 1;
+  padding: 4px 8px;
+  background-color: #e9e9e9;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Dark mode path display */
+.save-file-path-dark {
+  flex: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #e6e6e6;
+  padding: 4px 0;
+}
+
+.save-file-path:hover {
+  background-color: #d9d9d9;
+}
+
+/* Edit button styling */
+.save-file-edit {
+  background-color: #2196f3;
+  color: white;
+  min-width: 60px;
+  padding: 4px 10px;
+}
+
+.save-file-edit:hover {
+  background-color: #0b7dda;
+}
+
+/* Actions container */
+.save-file-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+/* Save button styling */
+.save-file-save-btn {
+  background-color: #4caf50;
+  color: white;
+  flex: 1;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+}
+
+.save-file-save-btn:hover {
+  background-color: #45a049;
+}
+
+/* Load button styling */
+.save-file-load-btn {
+  background-color: #ff9800;
+  color: white;
+  flex: 1;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+}
+
+.save-file-load-btn:hover {
+  background-color: #e68a00;
+}
+
+/* Sidebar specific styles */
+.sidebarSaveInput .save-file-container {
+  background-color: rgba(31, 64, 104, 0.3);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebarSaveInput .save-file-label,
+.sidebarSaveInput .save-file-path-dark {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.sidebarSaveInput .save-file-actions {
+  flex-direction: row;
+}
+
+.sidebarSaveInput button {
+  padding: 6px 10px;
+  font-size: 0.85em;
+} 
