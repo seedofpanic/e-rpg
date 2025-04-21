@@ -276,6 +276,10 @@ class PersonaStore {
       ...updates
     });
   }
+
+  getPersonaById(personaId: string) {
+    return this.personas.find(p => p.id === personaId);
+  }
 }
 
 export default new PersonaStore(); 

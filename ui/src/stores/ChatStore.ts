@@ -1,6 +1,5 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { io, Socket } from 'socket.io-client';
-import characterStore from './CharacterStore';
 import personaStore from './PersonaStore';
 
 // Local storage key for game state file path
@@ -93,6 +92,22 @@ class ChatStore {
         this.addMessage(data);
       });
       
+      // Listen for new messages (separate from regular message events)
+      this.socket.on('new_message', (data) => {
+        this.addMessage(data);
+      });
+      
+      // Listen for loading messages in bulk (e.g., when loading a saved game)
+      this.socket.on('load_messages', (messages) => {
+        console.log('Loading messages:', messages.length);
+        // Clear existing messages first
+        this.setMessages([]);
+        // Add all messages in the array
+        if (Array.isArray(messages)) {
+          messages.forEach(msg => this.addMessage(msg));
+        }
+      });
+      
       // Listen for game state updates
       this.socket.on('scene_updated', (data) => {
         this.updateScene(data);
@@ -152,6 +167,10 @@ class ChatStore {
       this.currentPersonaId = personaStore.currentPersona.id;
     }
   }
+
+  setMessages(messages: Message[]) {
+    this.messages = messages;
+  }
   
   // Message Actions
   setMessageInput(text: string) {
@@ -172,8 +191,6 @@ class ChatStore {
       continue: continueAfter,
       persona_id: this.currentPersonaId
     });
-    
-    this.setThinking(true);
   }
   
   continueCampaign() {

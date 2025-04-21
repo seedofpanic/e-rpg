@@ -16,6 +16,7 @@ from update_scene import get_current_scene, set_current_scene
 from character import Character, get_character_by_id, get_characters, set_characters, set_character_active, get_active_characters
 from gm_persona import get_personas, get_persona_by_id, create_persona, remove_persona, toggle_favorite, set_default_persona, get_default_persona, persona_manager
 from ai_utils import set_default_api_key, update_api_key, remove_api_key
+import shutil
 
 # Helper function for Socket.IO responses to handle request/response pattern
 def send_socket_response(request_id, payload):
@@ -107,7 +108,12 @@ for directory in avatar_dirs:
 @app.route('/images/<path:filename>')
 def serve_images(filename):
     """Serve images from the ui/public/images directory"""
-    return send_from_directory(os.path.join(app.root_path, 'ui/public/images'), filename)
+    response = send_from_directory(os.path.join(app.root_path, 'ui/public/images'), filename)
+    # Add no-cache headers to prevent browsers from caching images
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 # Define the React app path for production
 REACT_BUILD_PATH = os.path.join(app.root_path, 'react_build')
@@ -387,11 +393,12 @@ def handle_connect():
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print('Client disconnected')
+    """Handle socket disconnect."""
+    print('Client disconnected', request.sid)
     # Remove user's API key when they disconnect
     session_id = request.sid
     remove_api_key(session_id)
-
+    
 @socketio.on('gm_message')
 def handle_gm_message(data):
     """Handle GM message with optional persona"""
@@ -424,10 +431,6 @@ def handle_gm_message(data):
             gm_message = DialogueMessage("Game Master", message_text, get_gm_avatar(), "0")
             append_to_dialog_history(gm_message)
             send_socket_message('new_message', gm_message.to_dict())
-
-        # Process the message
-        if data.get('continue'):
-            decide_acting_character_for_master()
     
     except Exception as e:
         print(f"Error in handle_gm_message: {e}")
@@ -774,23 +777,25 @@ def upload_avatar():
             })
         elif character_id in get_characters():
             # Handle character avatar upload
-            filename = file.filename
+            # Generate a unique filename with timestamp to prevent conflicts and caching
+            file_ext = file.filename.split('.')[-1] if '.' in file.filename else 'png'
+            unique_filename = f"character_{character_id}_{int(time.time())}.{file_ext}"
             
             # Save the file
-            file_path = os.path.join(avatar_dir, filename)
+            file_path = os.path.join(avatar_dir, unique_filename)
             file.save(file_path)
-            get_character_by_id(character_id).set_avatar(filename)
+            get_character_by_id(character_id).set_avatar(unique_filename)
 
             # Update all clients about the character update
             emit_characters_updated()
             
             # Update character avatar path
-            relative_path = f"avatars/{filename}"
+            relative_path = f"avatars/{unique_filename}"
             
             return jsonify({
                 "status": "success",
                 "avatar_path": relative_path,
-                "url": url_for('uploaded_file', filename=filename)
+                "url": url_for('uploaded_file', filename=unique_filename)
             })
         else:
             return jsonify({"error": f"Invalid character ID: {character_id}"}), 404

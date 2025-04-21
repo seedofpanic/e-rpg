@@ -5,7 +5,7 @@ cache = {}
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-def compare_with_base(self, base_phrase, input_text):
+def compare_with_base(base_phrase, input_text):
     base_embedding = cache.get(base_phrase)
     input_embedding = cache.get(input_text)
 

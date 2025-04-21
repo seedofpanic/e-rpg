@@ -29,6 +29,7 @@ export interface Character {
   skill_proficiencies?: Record<string, boolean>;
   inventory?: Array<InventoryItem>;
   gold?: number;
+  _avatarTimestamp?: number;
 }
 
 
@@ -116,6 +117,10 @@ class CharacterStore {
   // Map backend character format to our interface
   private mapBackendCharacter(id: string, backendChar: any): Character {
     try {
+      // Check if we already have this character to preserve cache-busting timestamps
+      const existingChar = this.characters[id];
+      const currentTimestamp = existingChar?._avatarTimestamp;
+      
       return {
         id: id,
         name: backendChar.name || 'Unknown',
@@ -134,7 +139,11 @@ class CharacterStore {
         proficiency_bonus: backendChar.proficiency_bonus,
         skill_proficiencies: backendChar.skill_proficiencies,
         inventory: backendChar.inventory,
-        gold: backendChar.gold
+        gold: backendChar.gold,
+        // Preserve the avatar timestamp if one exists, or use a new timestamp if avatar changed
+        _avatarTimestamp: existingChar && backendChar.avatar === existingChar.avatar 
+          ? currentTimestamp 
+          : backendChar.avatar ? Date.now() : undefined
       };
     } catch (err) {
       console.error('CharacterStore: Error mapping character', err);

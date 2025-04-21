@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useState, useLayoutEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import chatStore from '../stores/ChatStore';
 import personaStore, { Persona } from '../stores/PersonaStore';
-import notificationStore from '../stores/NotificationStore';
 import ChatMessage from './ChatMessage';
 import PersonaManagement from './PersonaManagement';
 import styles from '../styles/main.module.css';
@@ -79,15 +78,10 @@ const ChatArea: React.FC = observer(() => {
     };
   }, [showPersonaDropdown]);
   
-  // Scroll to bottom when messages change - using useLayoutEffect for DOM updates
+  // Scroll to bottom when messages change or thinking status changes - using useLayoutEffect for DOM updates
   useLayoutEffect(() => {
     scrollToBottom();
-  }, [chatStore.messages]);
-  
-  // Also scroll to bottom when thinking status changes
-  useEffect(() => {
-    scrollToBottom();
-  }, [chatStore.isThinking]);
+  }, [chatStore.messages.length, chatStore.isThinking]);
   
   // Initial scroll and periodic check for content loading
   useEffect(() => {

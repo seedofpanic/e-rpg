@@ -27,8 +27,12 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
   // State for settings modal
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
-  // New ref for file input
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Refs for file input
+  const personaFileInputRef = useRef<HTMLInputElement>(null);
+  const characterFileInputRef = useRef<HTMLInputElement>(null);
+  
+  // State to track which character is selected for avatar upload
+  const [selectedCharacterId, setSelectedCharacterId] = useState<string>('');
   
   // Use try-catch to prevent rendering errors
   let characters: Character[] = [];
@@ -102,9 +106,15 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
     }
   };
   
-  // Handle avatar click to open file upload
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
+  // Handle persona avatar click to open file upload
+  const handlePersonaAvatarClick = () => {
+    personaFileInputRef.current?.click();
+  };
+  
+  // Handle character avatar click to open file upload
+  const handleCharacterAvatarClick = (characterId: string) => {
+    setSelectedCharacterId(characterId);
+    characterFileInputRef.current?.click();
   };
   
   // Helper function to format avatar URL
@@ -133,8 +143,8 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
     return timestamp ? `/images/${avatarPath}?t=${timestamp}` : `/images/${avatarPath}`;
   };
   
-  // Handle avatar file change
-  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle persona avatar file change
+  const handlePersonaAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && personaStore.currentPersona) {
       const formData = new FormData();
@@ -160,6 +170,53 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
         }
       } catch (error) {
         console.error('Error uploading avatar:', error);
+      }
+    }
+  };
+  
+  // Handle character avatar file change
+  const handleCharacterAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && selectedCharacterId) {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      formData.append('character_id', selectedCharacterId);
+      
+      try {
+        const response = await fetch('/api/avatars', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Character avatar uploaded:', data);
+          
+          // Force an update with the new avatar path
+          if (data.status === 'success' && data.avatar_path) {
+            // Clone the characters object
+            const chars = {...characterStore.characters};
+            if (chars[selectedCharacterId]) {
+              // Update the character with the new avatar path and timestamp
+              chars[selectedCharacterId] = {
+                ...chars[selectedCharacterId],
+                avatar: data.avatar_path,
+                _avatarTimestamp: Date.now()
+              };
+              // Update the store to refresh the UI
+              characterStore.handleCharactersUpdated(chars);
+              
+              // Create a new image element to preload the new avatar
+              const img = new Image();
+              img.src = formatAvatarUrl(data.avatar_path, Date.now());
+            }
+          }
+          
+          // Reset selected character
+          setSelectedCharacterId('');
+        }
+      } catch (error) {
+        console.error('Error uploading character avatar:', error);
       }
     }
   };
@@ -190,7 +247,7 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
               src={formatAvatarUrl(personaStore.currentPersona.avatar, personaStore.currentPersona.avatarTimestamp)} 
               alt={personaStore.currentPersona.name} 
               className={styles.personaAvatar} 
-              onClick={handleAvatarClick}
+              onClick={handlePersonaAvatarClick}
               style={{ cursor: 'pointer' }}
               title="Click to change avatar"
             />
@@ -199,13 +256,13 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
               <small>{personaStore.currentPersona.description}</small>
             </div>
             
-            {/* Hidden file input */}
+            {/* Hidden file input for persona avatar */}
             <input
               type="file"
-              ref={fileInputRef}
+              ref={personaFileInputRef}
               style={{ display: 'none' }}
               accept="image/*"
-              onChange={handleAvatarChange}
+              onChange={handlePersonaAvatarChange}
             />
           </div>
         ) : (
@@ -269,7 +326,7 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
       
       <div className="characters-list mt-4">
         <h5 className="mb-1">Party&nbsp;Members</h5>
-        <small className="d-block text-light opacity-75 mb-2">(Click to toggle active/inactive)</small>
+        <small className="d-block text-light opacity-75 mb-2">(Click character to toggle active/inactive)</small>
         {characterStore.isLoading ? (
           <p className="text-muted">Loading characters...</p>
         ) : !characters || characters.length === 0 ? (
@@ -282,9 +339,15 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
               onClick={() => characterStore.toggleCharacterActive(character.id)}
             >
               <img 
-                src={formatAvatarUrl(character.avatar)} 
+                src={formatAvatarUrl(character.avatar, character._avatarTimestamp)} 
                 alt={character.name} 
                 className={`${styles.avatar} ${character.is_leader ? styles.leaderAvatar : ''}`} 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCharacterAvatarClick(character.id);
+                }}
+                title="Click to change avatar"
+                style={{ cursor: 'pointer' }}
               />
               <div className="character-info">
                 <div className="character-name">{character.name}</div>
@@ -397,6 +460,15 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
             </button>
           ))
         )}
+        
+        {/* Hidden file input for character avatar */}
+        <input
+          type="file"
+          ref={characterFileInputRef}
+          style={{ display: 'none' }}
+          accept="image/*"
+          onChange={handleCharacterAvatarChange}
+        />
       </div>
       
       <div className="connection-status mt-2">

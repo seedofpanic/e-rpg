@@ -9,6 +9,8 @@ interface ChatMessageProps {
   message: Message;
 }
 
+const globalTimestamp = Date.now();
+
 const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const [showSkillMenu, setShowSkillMenu] = useState(false);
   const skillMenuRef = useRef<HTMLDivElement>(null);
@@ -37,7 +39,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
       timestamp = avatarPath.split('?t=')[1];
     } else {
       // Use a random timestamp as fallback to prevent caching
-      timestamp = Date.now().toString();
+      timestamp = globalTimestamp.toString();
     }
     
     // If it starts with "images/"
