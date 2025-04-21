@@ -9,6 +9,9 @@ The application features a chat-based interface where each character, including 
 - **Google Gemini**: Provides the large language model capabilities that drive the AI players
 - **Flask & Socket.IO**: Creates a real-time web application for seamless interaction
 - **Web interface**: Delivers an accessible front-end experience through browser-based interaction
+- **Sentence Transformers**: Used for semantic text processing and understanding
+- **FAISS**: Efficient similarity search for character and world knowledge
+- **React**: Frontend UI built with React and TypeScript
 
 ## Key Features
 - AI-driven players with unique character personalities
@@ -16,6 +19,9 @@ The application features a chat-based interface where each character, including 
 - Voice input capabilities for natural game mastering
 - Real-time narrative development and character interaction
 - Adaptable AI responses to player decisions and game events
+- Character inventory and gold management
+- Game Master persona customization
+- Game state saving and loading
 
 ## Use Cases
 - Solo RPG campaigns for players without a regular group
@@ -26,61 +32,93 @@ The application features a chat-based interface where each character, including 
 ## Installation and Setup
 
 ### Prerequisites
-- Python 3.8 or higher
+- Python 3.11 or higher
 - Google Gemini API key
 - Conda (Miniconda or Anaconda)
+- Node.js 18 or higher (for UI development)
 
 ### Installation Steps
 1. Clone this repository:
    ```
-   git clone https://github.com/yourusername/e-rpg.git
+   git clone https://github.com/yourname/e-rpg.git
    cd e-rpg
    ```
 
-2. Create a conda environment and activate it:
+2. Create a conda environment using the provided environment file:
    ```
-   conda create -n e-rpg python=3.8
-   conda activate e-rpg
-   ```
-
-3. Install the dependencies:
-   ```
-   pip install -r requirements.txt
+   conda env create -f environment.yml
+   conda activate develop
    ```
 
-4. Install faiss using conda:
-   ```
-   conda install -c conda-forge faiss-gpu
-   ```
-
-5. Create a `.env` file based on the example:
+3. Create a `.env` file based on the example:
    ```
    cp .env.example .env
    ```
 
-6. Edit the `.env` file and add your Google Gemini API key.
+4. Edit the `.env` file and add your Google Gemini API key.
 
 ### Running the Application
-1. Start the Flask application:
-   ```
-   flask run --no-debugger --no-reload
-   ```
 
-   Alternatively, you can run directly with Python:
+#### Backend Server
+1. Start the Flask application:
    ```
    python app.py
    ```
 
-2. Open a web browser and navigate to:
+2. The server will start on http://localhost:5000
+
+#### UI Development (Optional)
+If you want to run the UI in development mode with hot-reloading:
+
+1. Navigate to the UI directory:
    ```
-   http://localhost:5000
+   cd ui
    ```
+
+2. Install Node.js dependencies:
+   ```
+   npm install
+   ```
+
+3. Start the development server:
+   ```
+   npm start
+   ```
+
+4. The development UI will be available at http://localhost:5173 and will connect to the backend at port 5000
+
+#### Building the UI for Production
+To build the UI for production deployment:
+
+1. Navigate to the UI directory:
+   ```
+   cd ui
+   ```
+
+2. Build the production version:
+   ```
+   npm run build
+   ```
+
+3. The built files will be available in the `ui/dist` directory and can be served by the Flask application
 
 ## Creating Character Avatars
 Place character avatar images in the `ui/public/images/` directory. Make sure to include:
 - `gm.png` for the Game Master
 - `system.png` for system messages
-- Character avatar images that match the avatar filenames in `app.py`
+- Character avatar images that match the avatar filenames specified in your character definitions
 
 ## Customizing Characters
-Edit the `characters` dictionary in `app.py` to create unique character personalities, backgrounds, and classes.
+Characters can be created and customized directly through the web interface. Each character can have:
+- Unique personality traits and background
+- Character class and race
+- Custom avatar
+- Inventory items and gold
+- Ability scores
+
+## Game Master Personas
+You can create and manage different Game Master personas to change the tone and style of your game sessions. The application allows you to:
+- Create multiple GM personas
+- Set favorite personas
+- Define default personas
+- Upload custom avatars for each persona
