@@ -103,10 +103,12 @@ const ChatArea: React.FC = observer(() => {
   
   // Handle send message with keyboard shortcut
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !chatStore.isThinking) {
+    if (e.code === 'Enter' && !chatStore.isThinking) {
       if (e.ctrlKey) {
         // Ctrl+Enter to continue
-        chatStore.sendMessage(true);
+        chatStore.sendMessage();
+        chatStore.continueCampaign();
+
       } else {
         // Regular Enter to send
         chatStore.sendMessage();

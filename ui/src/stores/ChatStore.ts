@@ -177,7 +177,7 @@ class ChatStore {
     this.messageInput = text;
   }
   
-  sendMessage(continueAfter: boolean = false) {
+  sendMessage() {
     if (!this.messageInput.trim() || !this.socket) return;
     
     const message = this.messageInput;
@@ -188,7 +188,6 @@ class ChatStore {
     
     this.socket.emit('gm_message', {
       message,
-      continue: continueAfter,
       persona_id: this.currentPersonaId
     });
   }

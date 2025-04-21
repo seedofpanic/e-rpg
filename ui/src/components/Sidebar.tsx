@@ -234,7 +234,7 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
           <h5 className="mb-0">GM Persona</h5>
         </div>
         
-        {personaStore.isLoading ? (
+        {!personaStore.currentPersona && personaStore.isLoading ? (
           <div className="d-flex align-items-center">
             <div className="spinner-border spinner-border-sm me-2" role="status">
               <span className="visually-hidden">Loading...</span>

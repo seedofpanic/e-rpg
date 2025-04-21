@@ -442,10 +442,13 @@ html, body {
 .personaInfo small {
     font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.6);
-    white-space: nowrap;
+    white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 180px;
+    max-width: 200px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 /* Persona management modal */
