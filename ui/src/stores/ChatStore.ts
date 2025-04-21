@@ -122,6 +122,10 @@ class ChatStore {
         this.setThinking(false);
       });
       
+      this.socket.on('thinking_ended', () => {
+        this.setThinking(false);
+      });
+      
       // Listen for save file path updates
       this.socket.on('save_file_path', (data) => {
         this.setSaveFilePath(data.filepath);
