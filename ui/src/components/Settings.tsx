@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
-import chatStore from '../stores/ChatStore';
 import styles from '../styles/main.module.css';
 import SaveFileInput from './SaveFileInput';
 import '../styles/SaveFileInput.css';
@@ -20,7 +19,7 @@ const Settings: React.FC<SettingsProps> = observer(({ isOpen, onClose }) => {
     );
     
     if (confirmReset) {
-      chatStore.resetGame();
+      settingsStore.resetGame();
       onClose();
     }
   };

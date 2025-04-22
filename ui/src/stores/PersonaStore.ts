@@ -26,6 +26,7 @@ class PersonaStore {
 
   initSocket() {
     socketService.on('personas_updated', (data: { personas: Persona[], default_persona: string }) => {
+      console.log('personas_updated', data);
       this.loadPersonas(data);
     });
   }

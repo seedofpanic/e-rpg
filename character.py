@@ -461,7 +461,7 @@ _characters = {
 
 def update_avatar(character):
     global _characters
-    if os.path.exists("ui/public/" + character.avatar):
+    if os.path.exists("ui/public/images/" + character.avatar):
         _characters[character.id].avatar = character.avatar
     else:
         _characters[character.id].avatar = "avatar.jpg"
@@ -560,7 +560,7 @@ def reset_to_default_characters():
     set_characters(reseted_characters)
 
 # Generate AI character response
-def get_character_by_id(character_id):
+def get_character_by_id(character_id) -> Character | None:
     char_logger.info(f"Getting character by id: {character_id}")
     character = _characters.get(character_id)
     if character:

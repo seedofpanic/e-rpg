@@ -47,6 +47,7 @@ _personas = {}
 _default_persona = None
 
 def get_personas():
+    global _personas
     """Get all GM personas"""
     return _personas
 
@@ -307,19 +308,16 @@ class PersonaManager:
             
             # Copy the avatar file
             shutil.copy2(avatar_path, destination)
+            print(f"Avatar saved to: {destination}")
             
             # Update persona with new avatar URL
             avatar_url = f"images/avatars/{filename}"
             persona.avatar = avatar_url
-            
-            # Trigger game state save
-            if 'game_state' in globals():
-                globals()['game_state'].save_game()
-                
-            return avatar_url
         except Exception as e:
             print(f"Error saving avatar: {e}")
             return None
+        finally:
+            return avatar_url
 
 # Create a global instance of the PersonaManager
 persona_manager = PersonaManager() 

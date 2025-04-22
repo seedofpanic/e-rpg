@@ -1,3 +1,4 @@
+import traceback
 import uuid
 from dotenv import load_dotenv
 load_dotenv()
@@ -57,6 +58,7 @@ def get_all_characters_data():
 def emit_characters_updated():
     """Emit characters_updated event to all clients"""
     characters_data = get_all_characters_data()
+    print(f"Emitting characters_updated event to all clients: {characters_data}")
     send_socket_message('characters_updated', {
         'characters': characters_data
     })
@@ -93,22 +95,11 @@ def restore_messages():
         'messages': [message.to_dict() for message in messages]
     })
 
-# Socket.IO events for real-time chat
-@socketio.on('init')
-def handle_init():
-    """Handle client connection"""
-    print("Client connected")
-    
+def emit_game_data():
     # Emit the current game state, including scene, characters, lore
     send_socket_message('scene_updated', {
         'scene': get_current_scene(),
         'lore': get_base_lore()
-    })
-    
-    # Send the save file path to the client
-    save_path = game_state.get_save_file_path()
-    send_socket_message('save_file_path', {
-        'filepath': save_path
     })
     
     # Send characters data
@@ -119,6 +110,14 @@ def handle_init():
     
     # Restore message history from server
     restore_messages()
+
+# Socket.IO events for real-time chat
+@socketio.on('init')
+def handle_init():
+    """Handle client connection"""
+    print("Client connected")
+    
+    emit_game_data()
 
 @socketio.on('disconnect')
 def handle_disconnect():
@@ -249,7 +248,7 @@ def handle_save_game(data):
     filepath = data.get('filepath')
     
     if filepath:
-        game_state.set_save_file_path(filepath)
+        game_state.set_save_file_path(filepath + ".json")
     
     success = game_state.save_game()
     
@@ -274,23 +273,13 @@ def handle_load_game(data):
     filepath = data.get('filepath')
     
     if filepath:
-        game_state.set_save_file_path(filepath)
+        game_state.set_save_file_path(filepath + ".json")
     
     success = game_state.load_game()
-    print(f"Loaded game from {filepath} {success}")
     
     if success:
         # Notify connected clients about updated game state
-        send_socket_message('scene_updated', {
-            'scene': get_current_scene(),
-            'lore': get_base_lore()
-        })
-        
-        # Also emit an event with all loaded dialogue history
-        restore_messages()
-        
-        # Emit persona update to ensure UI gets latest personas from restored game
-        emit_personas_updated()
+        emit_game_data()
         
         # Send notification of successful load
         send_socket_message('notification', {
@@ -380,32 +369,7 @@ def upload_avatar():
 
         print(f"Uploading avatar for {character_id} {file.filename}")
         
-        if character_id == None:
-            # Generate a unique filename to prevent conflicts
-            filename = file.filename
-            unique_filename = f"{uuid.uuid4()}.{file.filename.split('.')[-1]}"
-            # Save the file
-            file_path = os.path.join(avatar_dir, unique_filename)
-            file.save(file_path)
-            
-            return jsonify({
-                "status": "success",
-                "avatar_path": f"avatars/{unique_filename}",
-                "url": url_for('uploaded_file', filename=unique_filename)
-            })
-        elif character_id == 'gm':
-            # Handle GM avatar upload
-            filename = f"gm.png"
-            # Save the file
-            file_path = os.path.join(avatar_dir, filename)
-            file.save(file_path)
-            
-            return jsonify({
-                "status": "success",
-                "avatar_path": f"avatars/{filename}",
-                "url": url_for('uploaded_file', filename=filename)
-            })
-        elif character_id in get_characters():
+        if character_id in get_characters():
             # Handle character avatar upload
             # Generate a unique filename with timestamp to prevent conflicts and caching
             file_ext = file.filename.split('.')[-1] if '.' in file.filename else 'png'
@@ -414,7 +378,10 @@ def upload_avatar():
             # Save the file
             file_path = os.path.join(avatar_dir, unique_filename)
             file.save(file_path)
-            get_character_by_id(character_id).set_avatar(unique_filename)
+            character = get_character_by_id(character_id)
+            print(f"Character {character_id} avatar set to {unique_filename}")
+            if character:
+                character.set_avatar(unique_filename)
 
             # Update all clients about the character update
             emit_characters_updated()
@@ -601,7 +568,7 @@ def format_persona_for_api(persona):
         'id': persona.id,
         'name': persona.name,
         'description': persona.description,
-        'avatar': get_gm_avatar() if persona.id == 'gm' else persona.avatar,
+        'avatar': persona.avatar,
         'use_count': persona.use_count,
         'last_used': persona.last_used,
         'is_favorite': persona.is_favorite
@@ -620,6 +587,8 @@ def get_all_personas_data():
 
 # Emit a personas_updated event to all clients
 def emit_personas_updated():
+    # print trace
+    print(traceback.format_stack())
     """Emit personas_updated event to all clients"""
     personas_data = get_all_personas_data()
     send_socket_message('personas_updated', {
@@ -1078,6 +1047,7 @@ def upload_persona_avatar():
     os.makedirs(os.path.dirname(temp_path), exist_ok=True)
     file.save(temp_path)
     
+    print(f"Saving avatar to {temp_path} for persona {persona_id}")
     # Use the persona manager to save the avatar
     avatar_url = persona_manager.save_avatar(persona_id, temp_path)
     
@@ -1085,7 +1055,10 @@ def upload_persona_avatar():
     if os.path.exists(temp_path):
         os.remove(temp_path)
     
+    print(f"Avatar saved to {avatar_url}")
     if not avatar_url:
         return jsonify({"error": "Failed to save avatar"}), 500
     
+    emit_personas_updated()
+
     return jsonify({"avatar_url": avatar_url})

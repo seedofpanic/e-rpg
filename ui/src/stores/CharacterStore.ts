@@ -46,6 +46,7 @@ class CharacterStore {
   initSocket() {
     // Listen for character updates from the server
     socketService.on('characters_updated', (data: {characters: Record<string, Character>}) => {
+      console.log('characters_updated', data);
       this.setCharacters(data.characters);
     });
   }

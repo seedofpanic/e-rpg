@@ -73,22 +73,10 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
       formData.append('persona_id', personaStore.currentPersona.id);
       
       try {
-        const response = await fetch('/api/upload_persona_avatar', {
+        await fetch('/api/upload_persona_avatar', {
           method: 'POST',
           body: formData,
         });
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Avatar uploaded:', data);
-          // Update the avatar in the store
-          await personaStore.updatePersona(personaStore.currentPersona.id, { 
-            avatar: data.avatar_url 
-          });
-          
-          // Force refresh avatar in all components
-          personaStore.refreshAvatar(personaStore.currentPersona.id);
-        }
       } catch (error) {
         console.error('Error uploading avatar:', error);
       }

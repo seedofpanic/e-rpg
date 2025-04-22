@@ -1,7 +1,6 @@
 // SocketService to handle all backend communication via Socket.IO
 import { io, Socket } from 'socket.io-client';
 import notificationStore from '../stores/NotificationStore';
-import settingsStore from '../stores/SettingsStore';
 
 export interface SocketResponse<T = any> {
   success: boolean;
@@ -24,7 +23,6 @@ class SocketService {
     this.socket.on('connect', () => {
       console.log('SocketService: Connected to server');
       this.isConnected = true;
-      this.sendEvent('init');
     });
     
     this.socket.on('disconnect', () => {
@@ -60,45 +58,6 @@ class SocketService {
           break;
         default:
           notificationStore.showInfo(data.message);
-      }
-    });
-
-    // Setup listeners
-    this.socket.on('autosave_status', (data: { enabled: boolean; debug_mode: boolean; threshold?: number }) => {
-      console.log('Received autosave_status:', data);
-      settingsStore.setAutosaveEnabled(data.enabled);
-      settingsStore.setIsDebugMode(data.debug_mode);
-      
-      // Backend might return threshold directly or include it in a nested settings object
-      if (data.threshold) {
-        settingsStore.setAutosaveThreshold(data.threshold);
-      }
-    });
-    
-    // Direct response from get_autosave_settings
-    this.socket.on('autosave_settings', (data: any) => {
-      console.log('Received autosave_settings:', data);
-      if (data?.enabled !== undefined) {
-        settingsStore.setAutosaveEnabled(data.enabled);
-      }
-      if (data?.threshold) {
-        settingsStore.setAutosaveThreshold(data.threshold);
-      }
-    });
-    
-    this.socket.on('save_file_path', (data: { path?: string; filepath?: string }) => {
-      console.log('Received save_file_path:', data);
-      // Check both 'path' and 'filepath' formats since the backend might send either
-      const filePath = data.filepath || data.path;
-      if (filePath) {
-        settingsStore.setSaveFilePath(filePath);
-      }
-    });
-    
-    // Listen for scene updates which contain lore
-    this.socket.on('scene_updated', (data: any) => {
-      if (data && data.lore) {
-        settingsStore.setBaseLore(data.lore);
       }
     });
   }

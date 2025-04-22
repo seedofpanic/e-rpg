@@ -20,29 +20,30 @@ class SettingsStore {
     autosaveEnabled: boolean = false;
     autosaveThreshold: number = 10;
     saveFilePath: string = '';
-  baseLore: string = '';
-  isLoading: boolean = true;
-  apiKey: string = '';
-  isSettingsOpen: boolean = false;
+    baseLore: string = '';
+    isLoading: boolean = true;
+    apiKey: string = '';
+    isSettingsOpen: boolean = false;
 
-  setIsSettingsOpen(isOpen: boolean) {
-    this.isSettingsOpen = isOpen;
-  }
-  
-  setIsDebugMode(debug_mode: boolean) {
-    this.isDebugMode = debug_mode;
-  }
-  setAutosaveEnabled(enabled: boolean) {
-    this.autosaveEnabled = enabled;
-  }
-  setAutosaveThreshold(threshold: number) {
-      this.autosaveThreshold = threshold;
+    setIsSettingsOpen(isOpen: boolean) {
+        this.isSettingsOpen = isOpen;
     }
-  setSaveFilePath(filePath: string) {
-      this.saveFilePath = filePath;
-  }
-  setBaseLore(lore: string) {
-    this.baseLore = lore;
+
+    setIsDebugMode(debug_mode: boolean) {
+        this.isDebugMode = debug_mode;
+    }
+    setAutosaveEnabled(enabled: boolean) {
+        this.autosaveEnabled = enabled;
+    }
+    setAutosaveThreshold(threshold: number) {
+        this.autosaveThreshold = threshold;
+    }
+    setSaveFilePath(filePath: string) {
+        this.saveFilePath = filePath;
+        localStorage.setItem('saveFilePath', filePath);
+    }
+    setBaseLore(lore: string) {
+        this.baseLore = lore;
     }
     setIsSaving(isSaving: boolean) {
         this.isSaving = isSaving;
@@ -52,10 +53,43 @@ class SettingsStore {
     }
     constructor() {
         makeAutoObservable(this);
+        this.initializeSocket();
+    }
+    initializeSocket() {
+         // Setup listeners
+      socketService.on('autosave_status', (data: { enabled: boolean; debug_mode: boolean; threshold?: number }) => {
+        this.setAutosaveEnabled(data.enabled);
+        this.setIsDebugMode(data.debug_mode);
+        
+        // Backend might return threshold directly or include it in a nested settings object
+        if (data.threshold) {
+          this.setAutosaveThreshold(data.threshold);
+        }
+      });
+      
+      // Direct response from get_autosave_settings
+      socketService.on('autosave_settings', (data: any) => {
+        if (data?.enabled !== undefined) {
+          this.setAutosaveEnabled(data.enabled);
+        }
+        if (data?.threshold) {
+          this.setAutosaveThreshold(data.threshold);
+        }
+      });
+      
+      // Listen for scene updates which contain lore
+      socketService.on('scene_updated', (data: any) => {
+        if (data && data.lore) {
+          this.setBaseLore(data.lore);
+        }
+      });
+
+      this.setSaveFilePath(localStorage.getItem('saveFilePath') || 'game_state');     
+      socketService.sendEvent('init');
     }
     handleSaveSettings(): void {
-        settingsStore.setIsSaving(true);
-    
+        this.setIsSaving(true);
+
         // Update API key
         socketService.sendEvent('update_api_key', { api_key: this.apiKey });
         
