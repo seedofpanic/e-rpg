@@ -69,8 +69,8 @@
 }
 
 .character-avatar img {
-  width: 100%;
-  height: 100%;
+  width: 64px;
+  height: 64px;
   object-fit: cover;
   border-radius: 50%;
   border: 2px solid #3498db;
@@ -209,6 +209,7 @@
 }
 
 .character-form-modal .modal-content {
+  z-index: 1000;
   position: relative;
   background-color: #16213e;
   color: #e6e6e6;

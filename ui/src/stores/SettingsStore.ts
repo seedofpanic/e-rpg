@@ -2,6 +2,19 @@ import { makeAutoObservable } from "mobx";
 import socketService from "../services/api";
 
 class SettingsStore {
+  updateSaveFilePath() {
+    socketService.sendEvent('update_save_file_path', { filepath: this.saveFilePath });
+  }
+  loadGame() {
+    console.log('Loading game', this.saveFilePath);
+    socketService.sendEvent('load_game', { filepath: this.saveFilePath });
+  }
+  saveGame() {
+    socketService.sendEvent('save_game', { filepath: this.saveFilePath });
+  }
+  resetGame() {
+    socketService.sendEvent('reset_game');
+  }
     isSaving: boolean = false;
     isDebugMode: boolean = false;
     autosaveEnabled: boolean = false;

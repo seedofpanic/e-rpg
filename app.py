@@ -13,10 +13,9 @@ from game_state import game_state
 from app_socket import send_socket_message, app, socketio
 from message_analyzers import decide_acting_character_for_master
 from update_scene import get_current_scene, set_current_scene
-from character import Character, get_character_by_id, get_characters, set_characters, set_character_active, get_active_characters
+from character import Character, get_character_by_id, get_characters, set_characters, set_character_active, update_character
 from gm_persona import get_personas, get_persona_by_id, create_persona, remove_persona, toggle_favorite, set_default_persona, get_default_persona, persona_manager
 from ai_utils import set_default_api_key, update_api_key, remove_api_key
-import shutil
 
 # Helper function for Socket.IO responses to handle request/response pattern
 def send_socket_response(request_id, payload):
@@ -27,9 +26,8 @@ def send_socket_response(request_id, payload):
             'payload': payload
         })
 
-# Helper functions for character data
-def format_character_for_api(character):
-    """Format a character object for API responses"""
+def format_character_for_socket(character):
+    """Format a character object for Socket.IO events (streamlined version)"""
     return {
         'id': character.id,
         'name': character.name,
@@ -46,36 +44,19 @@ def format_character_for_api(character):
         'gold': character.gold
     }
 
-def format_character_for_socket(character):
-    """Format a character object for Socket.IO events (streamlined version)"""
-    return {
-        'id': character.id,
-        'name': character.name,
-        'class': character.char_class,
-        'race': character.race,
-        'is_leader': character.is_leader,
-        'active': character.active,
-        'avatar': character.avatar,
-        'gold': character.gold,
-        'inventory': character.inventory
-    }
-
-def get_all_characters_data(for_socket=False):
+def get_all_characters_data():
     """Get all characters formatted for API or Socket.IO"""
     characters = get_characters()
     characters_data = {}
     
-    formatter = format_character_for_socket if for_socket else format_character_for_api
-    
     for char_id, char in characters.items():
-        characters_data[char_id] = formatter(char)
+        characters_data[char_id] = format_character_for_socket(char)
     
     return characters_data
 
 def emit_characters_updated():
     """Emit characters_updated event to all clients"""
-    characters_data = get_all_characters_data(for_socket=True)
-    print(f"Emitting characters_updated event to all clients: {characters_data}")
+    characters_data = get_all_characters_data()
     send_socket_message('characters_updated', {
         'characters': characters_data
     })
@@ -107,13 +88,14 @@ for directory in avatar_dirs:
 
 def restore_messages():
     """Restore message history from server"""
+    messages = get_dialogue_history()
     send_socket_message('load_messages', {
-        'messages': get_dialogue_history()
+        'messages': [message.to_dict() for message in messages]
     })
 
 # Socket.IO events for real-time chat
 @socketio.on('init')
-def handle_connect():
+def handle_init():
     """Handle client connection"""
     print("Client connected")
     
@@ -154,10 +136,8 @@ def handle_gm_message(data):
         message_text = data.get('message', '')
         persona_id = data.get('persona_id')
         
-        # If persona_id is not provided in the message data, check if we have a stored persona for this client
-        if not persona_id and hasattr(app, 'client_personas'):
-            session_id = request.sid
-            persona_id = app.client_personas.get(session_id)
+        if not persona_id:
+            persona_id = get_default_persona()
         
         # If persona ID is provided or found in session, use that persona
         if persona_id:
@@ -173,11 +153,6 @@ def handle_gm_message(data):
                 
                 # Emit new message event
                 send_socket_message('new_message', gm_message.to_dict())
-        else:
-            # Default behavior if no persona was specified or found
-            gm_message = DialogueMessage("Game Master", message_text, get_gm_avatar(), "0")
-            append_to_dialog_history(gm_message)
-            send_socket_message('new_message', gm_message.to_dict())
     
     except Exception as e:
         print(f"Error in handle_gm_message: {e}")
@@ -334,18 +309,6 @@ def handle_load_game(data):
     
     send_socket_response(request_id, response)
 
-@socketio.on('get_characters')
-def handle_get_characters(data=None):
-    """Socket.IO event to get all characters"""
-    request_id = data.get('requestId') if data else None
-    
-    response = {
-        'status': 'success',
-        'characters': get_all_characters_data()
-    }
-    
-    send_socket_response(request_id, response)
-
 @socketio.on('update_game_state')
 def handle_update_game_state(data):
     """Socket.IO event to update the game state"""
@@ -398,76 +361,6 @@ def handle_reset_game(data=None):
             "lore": get_base_lore()
         }
     }
-    
-@app.route('/api/update_characters', methods=['POST'])
-def update_characters():
-    data = request.json
-    if not data or not data.get('characters'):
-        return jsonify({
-            'status': 'error',
-            'error': 'No character data provided'
-        }), 400
-    
-    new_characters = data['characters']
-    
-    # Create new characters dictionary
-    updated_characters = {}
-    characters = get_characters()
-    
-    for char_id, char_data in new_characters.items():
-        # Check if character already exists
-        existing_character = characters.get(char_id)
-        
-        # Create or update character
-        updated_characters[char_id] = Character(
-            char_id=char_id,
-            name=char_data['name'],
-            char_class=char_data['class'],
-            race=char_data['race'],
-            personality=char_data['personality'],
-            background=char_data['background'],
-            motivation=char_data['motivation'],
-            is_leader=char_data['is_leader'],
-            # Use existing avatar if character exists, otherwise default
-            avatar=existing_character.avatar if existing_character else "",
-            strength=char_data['ability_scores']['strength'],
-            dexterity=char_data['ability_scores']['dexterity'],
-            constitution=char_data['ability_scores']['constitution'],
-            intelligence=char_data['ability_scores']['intelligence'],
-            wisdom=char_data['ability_scores']['wisdom'],
-            charisma=char_data['ability_scores']['charisma'],
-            # Set active state from the character data, default to True if not provided
-            active=char_data.get('active', True)
-        )
-        
-        # Set additional attributes that aren't in the constructor
-        if 'skill_proficiencies' in char_data:
-            updated_characters[char_id].skill_proficiencies = char_data['skill_proficiencies']
-        
-        # Set max_hp and current_hp if provided
-        if 'max_hp' in char_data:
-            updated_characters[char_id].max_hp = char_data['max_hp']
-        if 'current_hp' in char_data:
-            updated_characters[char_id].current_hp = char_data['current_hp']
-        
-        # Set armor_class if provided
-        if 'armor_class' in char_data:
-            updated_characters[char_id].armor_class = char_data['armor_class']
-        
-        # Set proficiency_bonus if provided
-        if 'proficiency_bonus' in char_data:
-            updated_characters[char_id].proficiency_bonus = char_data['proficiency_bonus']
-    
-    # Replace the global characters dictionary
-    set_characters(updated_characters)
-    
-    # Emit characters_updated event to all clients
-    emit_characters_updated()
-    
-    return jsonify({
-        'status': 'success',
-        'message': 'Characters updated successfully'
-    })
 
 @app.route('/api/avatars', methods=['POST'])
 def upload_avatar():
@@ -601,7 +494,6 @@ def handle_update_characters(data):
         return
     
     # Create new characters dictionary
-    updated_characters = {}
     characters = get_characters()
     
     for char_id, char_data in new_characters.items():
@@ -609,7 +501,7 @@ def handle_update_characters(data):
         existing_character = characters.get(char_id)
         
         # Create or update character
-        updated_characters[char_id] = Character(
+        updated_character = Character(
             char_id=char_id,
             name=char_data['name'],
             char_class=char_data['class'],
@@ -632,24 +524,23 @@ def handle_update_characters(data):
         
         # Set additional attributes that aren't in the constructor
         if 'skill_proficiencies' in char_data:
-            updated_characters[char_id].skill_proficiencies = char_data['skill_proficiencies']
+            updated_character.skill_proficiencies = char_data['skill_proficiencies']
         
         # Set max_hp and current_hp if provided
         if 'max_hp' in char_data:
-            updated_characters[char_id].max_hp = char_data['max_hp']
+            updated_character.max_hp = char_data['max_hp']
         if 'current_hp' in char_data:
-            updated_characters[char_id].current_hp = char_data['current_hp']
+            updated_character.current_hp = char_data['current_hp']
         
         # Set armor_class if provided
         if 'armor_class' in char_data:
-            updated_characters[char_id].armor_class = char_data['armor_class']
+            updated_character.armor_class = char_data['armor_class']
         
         # Set proficiency_bonus if provided
         if 'proficiency_bonus' in char_data:
-            updated_characters[char_id].proficiency_bonus = char_data['proficiency_bonus']
-    
-    # Replace the global characters dictionary
-    set_characters(updated_characters)
+            updated_character.proficiency_bonus = char_data['proficiency_bonus']
+        
+        update_character(updated_character)
     
     # Emit characters_updated event to all clients
     emit_characters_updated()

@@ -1,20 +1,19 @@
 import { makeAutoObservable, runInAction } from 'mobx';
-import { Socket } from 'socket.io-client';
 import socketService from '../services/api';
 import { InventoryItem } from './InventoryStore';
 
 export interface Character {
   id: string;
   name: string;
-  class?: string;
-  race?: string;
+  class: string;
+  race: string;
+  personality: string;
+  background: string;
+  motivation: string;
   avatar: string;
   active: boolean;
   is_leader: boolean;
-  personality?: string;
-  background?: string;
-  motivation?: string;
-  ability_scores?: {
+  ability_scores: {
     strength: number;
     dexterity: number;
     constitution: number;
@@ -22,17 +21,17 @@ export interface Character {
     wisdom: number;
     charisma: number;
   };
-  max_hp?: number;
-  current_hp?: number;
-  armor_class?: number;
-  proficiency_bonus?: number;
-  skill_proficiencies?: Record<string, boolean>;
-  inventory?: Array<InventoryItem>;
-  gold?: number;
-  _avatarTimestamp?: number;
+  max_hp: number;
+  current_hp: number;
+  armor_class: number;
+  proficiency_bonus: number;
+  skill_proficiencies: Record<string, boolean>;
+  inventory: Array<InventoryItem>;
+  gold: number;
 }
 
 class CharacterStore {
+  charactersIds: string[] = [];
   characters: Record<string, Character> = {};
   isLoading: boolean = true;
   editingCharacter: Character | null = null;
@@ -46,108 +45,19 @@ class CharacterStore {
   
   initSocket() {
     // Listen for character updates from the server
-    socketService.on('characters_updated', (data: any) => {
-      try {
-        // Convert backend data format to our Character interface
-        const processedCharacters: Record<string, Character> = {};
-        
-        if (data && typeof data === 'object') {
-          // Check if data is already a map of characters (format from backend)
-          if (data.characters && typeof data.characters === 'object') {
-            // Format is { characters: { id1: char1, id2: char2 } }
-            const charactersMap = data.characters;
-            
-            Object.keys(charactersMap).forEach(id => {
-              const backendChar = charactersMap[id];
-              processedCharacters[id] = this.mapBackendCharacter(id, backendChar);
-            });
-          } else {
-            // Format might be direct characters object without nesting
-            Object.keys(data).forEach(id => {
-              const backendChar = data[id];
-              if (backendChar && typeof backendChar === 'object') {
-                processedCharacters[id] = this.mapBackendCharacter(id, backendChar);
-              }
-            });
-          }
-        }
-        
-        // Update store with processed characters
-        this.handleCharactersUpdated(processedCharacters);
-      } catch (err) {
-        console.error('CharacterStore: Error processing characters data', err);
-        this.handleCharactersUpdated({});
-      }
+    socketService.on('characters_updated', (data: {characters: Record<string, Character>}) => {
+      this.setCharacters(data.characters);
     });
   }
-  
-  // Map backend character format to our interface
-  private mapBackendCharacter(id: string, backendChar: any): Character {
-    try {
-      // Check if we already have this character to preserve cache-busting timestamps
-      const existingChar = this.characters[id];
-      const currentTimestamp = existingChar?._avatarTimestamp;
-      
-      return {
-        id: id,
-        name: backendChar.name || 'Unknown',
-        class: backendChar.class,
-        race: backendChar.race,
-        avatar: backendChar.avatar || '',
-        active: backendChar.active === undefined ? true : backendChar.active,
-        is_leader: backendChar.is_leader === undefined ? false : backendChar.is_leader,
-        personality: backendChar.personality,
-        background: backendChar.background,
-        motivation: backendChar.motivation,
-        ability_scores: backendChar.ability_scores,
-        max_hp: backendChar.max_hp,
-        current_hp: backendChar.current_hp,
-        armor_class: backendChar.armor_class,
-        proficiency_bonus: backendChar.proficiency_bonus,
-        skill_proficiencies: backendChar.skill_proficiencies,
-        inventory: backendChar.inventory,
-        gold: backendChar.gold,
-        // Preserve the avatar timestamp if one exists, or use a new timestamp if avatar changed
-        _avatarTimestamp: existingChar && backendChar.avatar === existingChar.avatar 
-          ? currentTimestamp 
-          : backendChar.avatar ? Date.now() : undefined
-      };
-    } catch (err) {
-      console.error('CharacterStore: Error mapping character', err);
-      return {
-        id: id,
-        name: 'Error',
-        avatar: '',
-        active: false,
-        is_leader: false
-      };
-    }
+
+  setCharacters(data: Record<string, Character>) {
+    this.characters = data;
+    this.charactersIds = Object.keys(data);
+    this.setLoading(false);
   }
   
-  handleCharactersUpdated(charactersData: Record<string, Character>) {
-    console.log('CharacterStore: Handling characters update', charactersData);
-    
-    runInAction(() => {
-      try {
-        // Make sure we always have an object even if null/undefined is passed
-        this.characters = charactersData && typeof charactersData === 'object' ? charactersData : {};
-        console.log('CharacterStore: Updated characters state', this.characters);
-      } catch (err) {
-        console.error('CharacterStore: Error updating characters state', err);
-        this.characters = {};
-      } finally {
-        this.isLoading = false;
-      }
-    });
-  }
-  
-  toggleCharacterActive(characterId: string) {
-    const socket = socketService.getSocket();
-    if (!socket) return;
-    const character = this.getCharacterById(characterId);
-    if (!character) return;
-    
-    socket.emit('toggle_character_active', { 
+  toggleCharacterActive(characterId: string) {    
+    socketService.sendEvent('toggle_character_active', { 
       character_id: characterId
     });
   }
@@ -168,43 +78,31 @@ class CharacterStore {
 
   // Create a new character
   createCharacter(characterData: any) {
-    const socket = socketService.getSocket();
-    if (!socket) return;
-    
     // Add to a characters object for the update_characters endpoint
     const characters = {
       [characterData.id]: characterData
     };
     
-    socket.emit('update_characters', { characters });
+    socketService.sendEvent('update_characters', { characters });
   }
 
   // Update an existing character
   updateCharacter(characterData: any) {
-    const socket = socketService.getSocket();
-    if (!socket) return;
-    
     // Add to a characters object for the update_characters endpoint
     const characters = {
       [characterData.id]: characterData
     };
     
-    socket.emit('update_characters', { characters });
+    socketService.sendEvent('update_characters', { characters });
   }
 
   // Delete a character
   deleteCharacter(characterId: string) {
-    const socket = socketService.getSocket();
-    if (!socket) return;
-    
-    socket.emit('delete_character', { character_id: characterId });
+    socketService.sendEvent('delete_character', { character_id: characterId });
   }
 
   // Set, add, or remove gold for a character
   setGold(characterId: string, amount: number, action: 'add' | 'remove' | 'set' = 'set') {
-    const socket = socketService.getSocket();
-    if (!socket) return;
-    
     const character = this.getCharacterById(characterId);
     if (!character) return;
     

@@ -74,12 +74,7 @@ class Character:
         if avatar:
             self.avatar = avatar
         else:
-            if os.path.exists(f"ui/public/images/avatars/{char_id}.png"):
-                self.avatar = f"avatars/{char_id}.png"
-            elif os.path.exists(f"ui/public/images/avatars/{char_id}.jpg"):
-                self.avatar = f"avatars/{char_id}.jpg"
-            else:
-                self.avatar = f"avatar.jpg"
+            self.avatar = f"avatar.jpg"
         self.is_leader = is_leader
         self.memory_updated = False
         self.memory = set(memory)
@@ -464,6 +459,17 @@ _characters = {
     
 }
 
+def update_avatar(character):
+    global _characters
+    if os.path.exists("ui/public/" + character.avatar):
+        _characters[character.id].avatar = character.avatar
+    else:
+        _characters[character.id].avatar = "avatar.jpg"
+
+def update_character(character):
+    global _characters
+    _characters[character.id] = character
+
 def get_characters():
     return _characters
 
@@ -474,6 +480,8 @@ def get_active_characters():
 def set_characters(characters):
     global _characters
     _characters = characters
+    for character in _characters.values():
+        update_avatar(character)
 
 def get_character_by_id(character_id):
     return _characters.get(character_id)
@@ -488,10 +496,8 @@ def set_character_active(character_id, active_state):
 
 def reset_to_default_characters():
     """Reset the characters dictionary to default state in case of errors"""
-    global _characters
-    
     # Define default characters
-    _characters = {
+    reseted_characters = {
         "ragnar": Character(
             char_id="ragnar",
             name="Ragnar Stormhammer" if language != "ru" else "Рыганар Громовый",
@@ -547,9 +553,11 @@ def reset_to_default_characters():
     }
     
     # Add default inventory items based on character class
-    _characters["ragnar"].inventory = InventoryManager.create_default_items("ragnar", "warrior")
-    _characters["elara"].inventory = InventoryManager.create_default_items("elara", "wizard")
-    _characters["thorne"].inventory = InventoryManager.create_default_items("thorne", "rogue")
+    reseted_characters["ragnar"].inventory = InventoryManager.create_default_items("ragnar", "warrior")
+    reseted_characters["elara"].inventory = InventoryManager.create_default_items("elara", "wizard")
+    reseted_characters["thorne"].inventory = InventoryManager.create_default_items("thorne", "rogue")
+
+    set_characters(reseted_characters)
 
 # Generate AI character response
 def get_character_by_id(character_id):

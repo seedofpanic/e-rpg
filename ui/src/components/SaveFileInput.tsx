@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import chatStore from '../stores/ChatStore';
+import settingsStore from '../stores/SettingsStore';
 
 interface SaveFileInputProps {
   onSave?: () => void;
@@ -10,27 +10,21 @@ interface SaveFileInputProps {
 }
 
 const SaveFileInput: React.FC<SaveFileInputProps> = observer(({ onSave, onLoad, className, darkMode = false }) => {
-  const [filePath, setFilePath] = useState(chatStore.saveFilePath);
   const [isEditing, setIsEditing] = useState(false);
-
-  // Update local state when the store's value changes
-  useEffect(() => {
-    setFilePath(chatStore.saveFilePath);
-  }, [chatStore.saveFilePath]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    chatStore.setSaveFilePath(filePath);
+    settingsStore.updateSaveFilePath();
     setIsEditing(false);
   };
 
   const handleSave = () => {
-    chatStore.saveGame(filePath);
+    settingsStore.saveGame();
     if (onSave) onSave();
   };
 
   const handleLoad = () => {
-    chatStore.loadGame(filePath);
+    settingsStore.loadGame();
     if (onLoad) onLoad();
   };
 
@@ -41,8 +35,8 @@ const SaveFileInput: React.FC<SaveFileInputProps> = observer(({ onSave, onLoad, 
           <div className={darkMode ? "input-group" : "save-file-input-group"}>
             <input
               type="text"
-              value={filePath}
-              onChange={(e) => setFilePath(e.target.value)}
+              value={settingsStore.saveFilePath}
+              onChange={(e) => settingsStore.setSaveFilePath(e.target.value)}
               placeholder="Enter save file path"
               className={darkMode ? "form-control" : "save-file-input"}
             />
@@ -56,7 +50,7 @@ const SaveFileInput: React.FC<SaveFileInputProps> = observer(({ onSave, onLoad, 
               type="button" 
               className={darkMode ? "btn btn-danger" : "save-file-cancel"}
               onClick={() => {
-                setFilePath(chatStore.saveFilePath);
+                settingsStore.updateSaveFilePath();
                 setIsEditing(false);
               }}
             >
@@ -73,7 +67,7 @@ const SaveFileInput: React.FC<SaveFileInputProps> = observer(({ onSave, onLoad, 
               onClick={() => setIsEditing(true)}
               title="Click to edit save file path"
             >
-              {chatStore.saveFilePath || 'game_state.json'}
+              {settingsStore.saveFilePath || 'game_state.json'}
             </span>
             <button 
               className={darkMode ? "btn btn-primary btn-sm" : "save-file-edit"} 

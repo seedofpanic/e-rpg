@@ -165,25 +165,23 @@ class GameState:
             set_base_lore(game_data.get("base_lore", ""))
             
             # Restore characters
-            loaded_characters = game_data.get("characters", {})
-            set_characters({})
-            characters = get_characters()
-            for char_data in loaded_characters:
-                characters[char_data["id"]] = Character.from_dict(char_data)
+            characters_data = game_data.get("characters", {})
+            loaded_characters = {}
+            for char_data in characters_data:
+                loaded_characters[char_data["id"]] = Character.from_dict(char_data)
+
+            set_characters(loaded_characters)
                 
             # Restore GM personas
-            loaded_personas = game_data.get("gm_personas", [])
-            set_personas({})
-            personas = get_personas()
-            for persona_data in loaded_personas:
-                personas[persona_data["id"]] = GMPersona.from_dict(persona_data)
+            personas_data = game_data.get("gm_personas", [])
+            loaded_personas = {}
+            for persona_data in personas_data:
+                loaded_personas[persona_data["id"]] = GMPersona.from_dict(persona_data)
+            set_personas(loaded_personas)
                 
             # Restore default persona
             default_persona = game_data.get("default_persona", "gm")
             set_default_persona(default_persona)
-
-            print("loaded_characters")
-            print(len(characters))
                 
             return True
         except Exception as e:

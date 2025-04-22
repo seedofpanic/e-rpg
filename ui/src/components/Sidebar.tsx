@@ -103,42 +103,10 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
       formData.append('avatar', file);
       formData.append('character_id', sidebarStore.selectedCharacterId);
       
-      try {
-        const response = await fetch('/api/avatars', {
-          method: 'POST',
-          body: formData,
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Character avatar uploaded:', data);
-          
-          // Force an update with the new avatar path
-          if (data.status === 'success' && data.avatar_path) {
-            // Clone the characters object
-            const chars = {...characterStore.characters};
-            if (chars[sidebarStore.selectedCharacterId]) {
-              // Update the character with the new avatar path and timestamp
-              chars[sidebarStore.selectedCharacterId] = {
-                ...chars[sidebarStore.selectedCharacterId],
-                avatar: data.avatar_path,
-                _avatarTimestamp: Date.now()
-              };
-              // Update the store to refresh the UI
-              characterStore.handleCharactersUpdated(chars);
-              
-              // Create a new image element to preload the new avatar
-              const img = new Image();
-              img.src = formatAvatarUrl(data.avatar_path, Date.now());
-            }
-          }
-          
-          // Reset selected character
-          sidebarStore.setSelectedCharacterId('');
-        }
-      } catch (error) {
-        console.error('Error uploading character avatar:', error);
-      }
+      await fetch('/api/avatars', {
+        method: 'POST',
+        body: formData,
+      });
     }
   };
   
@@ -248,19 +216,19 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
       <div className="characters-list mt-4">
         <h5 className="mb-1">Party&nbsp;Members</h5>
         <small className="d-block text-light opacity-75 mb-2">(Click character to toggle active/inactive)</small>
-        {characterStore.isLoading ? (
-          <p className="text-muted">Loading characters...</p>
-        ) : characterStore.characters?.length || Object.keys(characterStore.characters).length === 0 ? (
+        {!characterStore.charactersIds?.length ? (
           <p className="text-muted">No characters added yet</p>
         ) : (
-          Object.values(characterStore.characters).map((character: Character) => (
+          characterStore.charactersIds.map((characterId: string) => {
+            const character = characterStore.characters[characterId];
+            return (
             <button
-              key={character.id}
+              key={characterId}
               className={`${styles.characterItem} ${character.active ? 'active' : 'inactive'}`}
-              onClick={() => characterStore.toggleCharacterActive(character.id)}
+              onClick={() => characterStore.toggleCharacterActive(characterId)}
             >
               <img 
-                src={formatAvatarUrl(character.avatar, character._avatarTimestamp)} 
+                src={formatAvatarUrl(character.avatar)} 
                 alt={character.name} 
                 className={`${styles.avatar} ${character.is_leader ? styles.leaderAvatar : ''}`} 
                 onClick={(e) => {
@@ -286,7 +254,8 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
                 </div>
               )}
             </button>
-          ))
+          )
+        })
         )}
         
         {/* Hidden file input for character avatar */}

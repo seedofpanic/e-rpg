@@ -24,22 +24,14 @@ def process_character(character_id: str):
     text = result["text"]
         
     # Add character response to game_state messages
-    append_to_dialog_history(DialogueMessage(character.name, text, character.avatar, character_id))
+    message = DialogueMessage(character.name, text, character.avatar, character_id)
+    append_to_dialog_history(message)
     
     
     # output character response to the chat
-    send_socket_message('character_response', {
-        'character_id': character_id,
-        'character_name': character.name,
-        'message': text,
-        'avatar': character.avatar
-    })
+    send_socket_message('new_message', message.to_dict())
 
     do_update_scene(character.name, result["text"])
-
-    character.do_tools(result["text"])
-
-    return not characters_queue.empty() 
 
 request_character_response_declaration = Tool(function_declarations=[FunctionDeclaration(
     name="request_character_response",
@@ -73,7 +65,9 @@ def analyzer_process(prompt: str):
     )
 
     characters = get_active_characters()
-    character_id = tmp_characters_queue.get()
+    print("characters: ", characters)
+    character_id = tmp_characters_queue.get() if not tmp_characters_queue.empty() else None
+    print("character_id: ", character_id)
     character = get_character_by_id(character_id)
 
     print("character_id: ", character_id)

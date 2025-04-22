@@ -97,7 +97,6 @@ class SocketService {
     
     // Listen for scene updates which contain lore
     this.socket.on('scene_updated', (data: any) => {
-      console.log('Received scene_updated in Settings:', data);
       if (data && data.lore) {
         settingsStore.setBaseLore(data.lore);
       }

@@ -57,7 +57,11 @@ def get_persona_by_id(persona_id):
 def set_personas(personas):
     """Set the GM personas dictionary"""
     global _personas
-    _personas = personas
+    if (len(personas) > 0):
+        _personas = personas
+    else:
+        _personas = get_default_personas()
+    
 
 def add_persona(persona):
     """Add a new persona"""
@@ -97,11 +101,15 @@ def toggle_favorite(persona_id):
         return _personas[persona_id].is_favorite
     return False
 
+def get_default_personas():
+    return {
+        "gm": GMPersona("gm", "Game Master" if language != "ru" else "Мастер", "The default Game Master persona" if language != "ru" else "По умолчанию персонаж Мастера игры", "avatar.jpg")
+    }
+
 # Initialize with a default GM persona
 if not _personas:
     # Create default persona with a fixed ID instead of random UUID
-    persona = GMPersona("gm", "Game Master" if language != "ru" else "Мастер", "The default Game Master persona" if language != "ru" else "По умолчанию персонаж Мастера игры", "avatars/gm.png")
-    _personas["gm"] = persona
+    set_personas(get_default_personas())
     set_default_persona("gm")
 
 class PersonaManager:
