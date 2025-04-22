@@ -95,7 +95,7 @@ const ChatArea: React.FC = observer(() => {
   }, []);
   
   // Handle send message with keyboard shortcut
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: KeyboardEvent) => {
     if (e.code === 'Enter' && !chatStore.isThinking) {
       if (e.ctrlKey) {
         // Ctrl+Enter to continue
@@ -108,6 +108,13 @@ const ChatArea: React.FC = observer(() => {
       }
     }
   };
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyPress);
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, []);
   
   // Handle changing the active persona
   const handlePersonaChange = (persona: Persona) => {
@@ -227,7 +234,6 @@ const ChatArea: React.FC = observer(() => {
               placeholder="Type your message..."
               value={chatStore.messageInput}
               onChange={(e) => chatStore.setMessageInput(e.target.value)}
-              onKeyPress={handleKeyPress}
               disabled={chatStore.isThinking}
             />
             
