@@ -355,7 +355,10 @@ class Character:
             f"{dialogue_history}\n"
         )
         
-        result = generate_response(prompt, temperature=0.85) 
+        result = generate_response(prompt, temperature=0.85)
+
+        if result and "text" in result:
+            self.do_tools(result["text"])
 
         return result
 
