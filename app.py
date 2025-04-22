@@ -75,6 +75,7 @@ def get_all_characters_data(for_socket=False):
 def emit_characters_updated():
     """Emit characters_updated event to all clients"""
     characters_data = get_all_characters_data(for_socket=True)
+    print(f"Emitting characters_updated event to all clients: {characters_data}")
     send_socket_message('characters_updated', {
         'characters': characters_data
     })
@@ -104,268 +105,14 @@ avatar_dirs = [
 for directory in avatar_dirs:
     os.makedirs(directory, exist_ok=True)
 
-# Add a route to serve images from the /images URL path
-@app.route('/images/<path:filename>')
-def serve_images(filename):
-    """Serve images from the ui/public/images directory"""
-    response = send_from_directory(os.path.join(app.root_path, 'ui/public/images'), filename)
-    # Add no-cache headers to prevent browsers from caching images
-    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
-    return response
-
-# Define the React app path for production
-REACT_BUILD_PATH = os.path.join(app.root_path, 'react_build')
-
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve_react_app(path):
-    # For production: serve the React app from the build directory
-    if os.path.exists(REACT_BUILD_PATH):
-        # If the path is empty, serve the React index.html
-        if not path:
-            return send_from_directory(REACT_BUILD_PATH, 'index.html')
-        
-        # Check if the requested file exists
-        if os.path.exists(os.path.join(REACT_BUILD_PATH, path)):
-            return send_from_directory(REACT_BUILD_PATH, path)
-        
-        # For React router, return index.html for all non-file paths
-        return send_from_directory(REACT_BUILD_PATH, 'index.html')
-    
-    # For development or if React build doesn't exist: serve the Flask template
-    # Convert characters dictionary to format expected by the template
-    char_data = {}
-    characters = get_characters()
-    for char_id, char in characters.items():
-        # Check if avatar file exists
-        avatar = char.get_avatar_url()
-        
-        char_data[char_id] = {
-            "name": char.name,
-            "class": char.char_class,
-            "race": char.race,
-            "personality": char.personality,
-            "background": char.background,
-            "avatar": avatar,
-            "is_leader": char.is_leader,
-            "active": char.active
-        }
-    
-    gm_avatar = get_gm_avatar()
-    
-    return render_template('index.html', 
-                          characters=char_data,
-                          gm_avatar=gm_avatar,
-                          current_scene=get_current_scene(),
-                          base_lore=get_base_lore(),
-                          save_file_path=game_state.get_save_file_path())
-
-@app.route('/api/voice_input', methods=['POST'])
-def voice_input():
-    # Initialize recognizer
-    r = sr.Recognizer()
-    
-    # Capture audio from microphone
-    with sr.Microphone() as source:
-        r.adjust_for_ambient_noise(source)
-        audio = r.listen(source)
-    
-    try:
-        # Convert speech to text
-        text = r.recognize_google(audio)
-        return jsonify({"text": text})
-    except sr.UnknownValueError:
-        return jsonify({"error": "Could not understand audio"})
-    except sr.RequestError:
-        return jsonify({"error": "Could not request results"})
-
-@app.route('/api/update_game_state', methods=['POST'])
-def update_game_state():
-    data = request.json
-    new_scene = data.get('scene')
-    new_lore = data.get('lore')
-    
-    if new_scene:
-        set_current_scene(new_scene)
-    
-    if new_lore is not None:
-        set_base_lore(new_lore)
-    
-    return jsonify({
-        "status": "success", 
-        "game_state": {
-            "scene": get_current_scene(),
-            "lore": get_base_lore()
-        }
-    })
-
-@app.route('/api/save_game', methods=['POST'])
-def save_game():
-    data = request.json
-    filepath = data.get('filepath')
-    
-    if filepath:
-        game_state.set_save_file_path(filepath)
-    
-    success = game_state.save_game()
-    
-    if success:
-        # Send notification of successful save
-        send_socket_message('notification', {
-            'type': 'success',
-            'message': f'Game saved successfully to {game_state.get_save_file_path()}'
-        })
-    
-    return jsonify({
-        "status": "success" if success else "error",
-        "filepath": game_state.get_save_file_path()
-    })
-
 def restore_messages():
-    history = get_dialogue_history(1000)  # Get a reasonable number of messages
-    if history:
-        # Send all messages at once instead of one by one
-        messages = [msg.to_dict() for msg in history]
-        send_socket_message('load_messages', messages)
-
-@app.route('/api/load_game', methods=['POST'])
-def load_game():
-    data = request.json
-    filepath = data.get('filepath')
-    
-    if filepath:
-        game_state.set_save_file_path(filepath)
-    
-    success = game_state.load_game()
-    print(f"Loaded game from {filepath} {success}")
-    
-    if success:
-        # Notify connected clients about updated game state
-        send_socket_message('scene_updated', {
-            'scene': get_current_scene(),
-            'lore': get_base_lore()
-        })
-        
-        # Also emit an event with all loaded dialogue history
-        restore_messages()
-        
-        # Emit persona update to ensure UI gets latest personas from restored game
-        emit_personas_updated()
-        
-        # Send notification of successful load
-        send_socket_message('notification', {
-            'type': 'success',
-            'message': f'Game loaded successfully from {game_state.get_save_file_path()}'
-        })
-    
-    return jsonify({
-        "status": "success" if success else "error",
-        "filepath": game_state.get_save_file_path(),
-        "game_state": {
-            "scene": get_current_scene(),
-            "lore": get_base_lore()
-        } if success else {}
-    })
-
-@app.route('/api/get_save_file_path', methods=['GET'])
-def get_save_file_path():
-    return jsonify({
-        "filepath": game_state.get_save_file_path()
-    })
-
-@app.route('/api/get_autosave_status', methods=['GET'])
-def get_autosave_status():
-    is_debug = app.debug or os.environ.get('FLASK_DEBUG', '').lower() in ('true', '1', 't')
-    
-    return jsonify({
-        "status": "success",
-        "enabled": game_state.is_autosave_enabled(),
-        "debug_mode": is_debug,
-        "message": "Autosave is disabled in debug mode" if is_debug else ""
-    })
-
-@app.route('/api/get_autosave_settings', methods=['GET'])
-def get_autosave_settings():
-    return jsonify({
-        "enabled": game_state.is_autosave_enabled(),
-        "threshold": game_state.get_autosave_threshold()
-    })
-
-@app.route('/api/update_autosave_settings', methods=['POST'])
-def update_autosave_settings():
-    data = request.json
-    enabled = data.get('enabled')
-    threshold = data.get('threshold')
-    
-    # Check if we're in debug mode
-    if app.debug or os.environ.get('FLASK_DEBUG', '').lower() in ('true', '1', 't'):
-        # Force autosave to be disabled in debug mode
-        game_state.disable_autosave()
-        
-        return jsonify({
-            "status": "warning",
-            "message": "Autosave is always disabled in debug mode",
-            "enabled": False,
-            "settings": {
-                "enabled": False,
-                "threshold": game_state.get_autosave_threshold()
-            }
-        })
-    
-    # Not in debug mode, process normally
-    if enabled is not None:
-        if enabled:
-            game_state.enable_autosave()
-        else:
-            game_state.disable_autosave()
-    
-    if threshold is not None and isinstance(threshold, int) and threshold > 0:
-        game_state.set_autosave_threshold(threshold)
-    
-    return jsonify({
-        "status": "success",
-        "enabled": game_state.is_autosave_enabled(),
-        "settings": {
-            "enabled": game_state.is_autosave_enabled(),
-            "threshold": game_state.get_autosave_threshold()
-        }
-    })
-
-@app.route('/api/reset_game', methods=['POST'])
-def reset_game():
-    # Reset dialogue history
-    set_dialog_history([])
-    
-    set_current_scene("You are in a tavern in the city of Kadera.")
-    
-    # Reset character memories
-    for character in get_characters().values():
-        character.clear_memories()
-    
-    # Notify connected clients about reset game state
-    send_socket_message('scene_updated', {
-        'scene': get_current_scene(),
-        'lore': get_base_lore()
-    })
-
-    # save to file
-    game_state.save_game()
-    
-    # Emit an event to clear chat history
-    send_socket_message('game_reset')
-    
-    return jsonify({
-        "status": "success",
-        "game_state": {
-            "scene": get_current_scene(),
-            "lore": get_base_lore()
-        }
+    """Restore message history from server"""
+    send_socket_message('load_messages', {
+        'messages': get_dialogue_history()
     })
 
 # Socket.IO events for real-time chat
-@socketio.on('connect')
+@socketio.on('init')
 def handle_connect():
     """Handle client connection"""
     print("Client connected")
@@ -611,16 +358,6 @@ def handle_update_game_state(data):
     
     if new_lore is not None:
         set_base_lore(new_lore)
-    
-    response = {
-        "status": "success", 
-        "game_state": {
-            "scene": get_current_scene(),
-            "lore": get_base_lore()
-        }
-    }
-    
-    send_socket_response(request_id, response)
     
     # Notify all clients about the update
     send_socket_message('scene_updated', {
@@ -1320,7 +1057,7 @@ def handle_create_persona(data):
         send_socket_response(request_id, {'persona': new_persona})
     
     # Notify all clients that personas have been updated
-    send_socket_message('personas_updated', {'personas': persona_manager.get_all_personas()})
+    emit_personas_updated()
 
 @socketio.on('update_persona')
 def handle_update_persona(data):
@@ -1353,8 +1090,7 @@ def handle_update_persona(data):
             send_socket_response(request_id, {'error': 'Persona not found'})
     
     # Notify all clients that personas have been updated
-    if updated_persona:
-        send_socket_message('personas_updated', {'personas': persona_manager.get_all_personas()})
+    emit_personas_updated()
 
 @socketio.on('delete_persona')
 def handle_delete_persona(data):
@@ -1378,8 +1114,7 @@ def handle_delete_persona(data):
         send_socket_response(request_id, {'success': success})
     
     # Notify all clients that personas have been updated
-    if success:
-        send_socket_message('personas_updated', {'personas': persona_manager.get_all_personas()})
+    emit_personas_updated()
 
 @socketio.on('set_default_persona')
 def handle_set_default_persona(data):
@@ -1402,9 +1137,7 @@ def handle_set_default_persona(data):
     if request_id:
         send_socket_response(request_id, {'success': success})
     
-    # Notify all clients that personas have been updated
-    if success:
-        send_socket_message('personas_updated', {'personas': persona_manager.get_all_personas()})
+    emit_personas_updated()
 
 @socketio.on('switch_persona')
 def handle_switch_persona(data):

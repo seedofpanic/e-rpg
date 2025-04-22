@@ -32,7 +32,6 @@ export interface Character {
   _avatarTimestamp?: number;
 }
 
-
 class CharacterStore {
   characters: Record<string, Character> = {};
   isLoading: boolean = true;
@@ -41,42 +40,13 @@ class CharacterStore {
   constructor() {
     makeAutoObservable(this);
     // Initialize with empty object to prevent undefined errors
-    this.characters = {};
-    
-    // Fetch characters via socket on initialization
-    this.fetchCharacters();
+    this.initSocket()
   }
-  
-  // Fetch characters using the SocketService
-  async fetchCharacters() {
-    try {
-      console.log('CharacterStore: Fetching characters via socket');
-      const characters = await socketService.getCharacters();
-      console.log('CharacterStore: Characters fetched via socket', characters);
-      
-      // Process characters from socket
-      if (characters && typeof characters === 'object') {
-        const processedCharacters: Record<string, Character> = {};
-        
-        Object.keys(characters).forEach(id => {
-          const backendChar = characters[id];
-          processedCharacters[id] = this.mapBackendCharacter(id, backendChar);
-        });
-        
-        this.handleCharactersUpdated(processedCharacters);
-      }
-    } catch (err) {
-      console.error('CharacterStore: Error fetching characters via socket', err);
-    }
-  }
-  
-  initSocket(socket: Socket) {
-    console.log('CharacterStore: Initializing socket listeners');
     
+  
+  initSocket() {
     // Listen for character updates from the server
-    socket.on('characters_updated', (data) => {
-      console.log('CharacterStore: Received characters_updated event', data);
-      
+    socketService.on('characters_updated', (data: any) => {
       try {
         // Convert backend data format to our Character interface
         const processedCharacters: Record<string, Character> = {};
@@ -109,9 +79,6 @@ class CharacterStore {
         this.handleCharactersUpdated({});
       }
     });
-    
-    // Force a refresh if needed
-    socket.emit('get_characters');
   }
   
   // Map backend character format to our interface

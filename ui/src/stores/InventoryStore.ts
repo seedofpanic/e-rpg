@@ -25,46 +25,13 @@ class InventoryStore {
     makeAutoObservable(this);
   }
 
-  // Fetch all inventory items
-  async fetchInventory(): Promise<void> {
-    this.isLoading = true;
-    this.error = null;
-    
-    try {
-      // Get inventory data from the socket service
-      const characters = await socketService.getCharacters();
-      const allItems: InventoryItem[] = [];
-      
-      // Extract inventory items from all characters
-      if (characters) {
-        Object.keys(characters).forEach(charId => {
-          const character = characters[charId];
-          if (character.inventory && Array.isArray(character.inventory)) {
-            allItems.push(...character.inventory);
-          }
-        });
-      }
-      
-      runInAction(() => {
-        this.items = allItems;
-        this.isInitialized = true;
-        this.isLoading = false;
-      });
-    } catch (error) {
-      runInAction(() => {
-        this.error = 'Failed to load inventory';
-        this.isLoading = false;
-      });
-    }
-  }
-
   // Get inventory for a specific character
   getCharacterInventory(characterId: string): InventoryItem[] {
     return this.items.filter(item => item.characterId === characterId);
   }
 
   // Add a new inventory item
-  async addInventoryItem(item: Omit<InventoryItem, 'id'>): Promise<void> {
+  addInventoryItem(item: Omit<InventoryItem, 'id'>) {
     this.isLoading = true;
     this.error = null;
     
@@ -72,31 +39,19 @@ class InventoryStore {
       ...item,
       id: uuidv4()
     };
-    
-    try {
-      // Use socket service to send add inventory item event
-      await socketService.sendEvent('add_inventory_item', {
-        character_id: newItem.characterId,
-        item_name: newItem.name,
-        item_description: newItem.description,
-        item_quantity: newItem.quantity,
-        value: newItem.value,
-        weight: newItem.weight,
-        type: newItem.type,
-        rarity: newItem.rarity,
-        equipped: newItem.equipped
-      });
-      
-      runInAction(() => {
-        this.items.push(newItem);
-        this.isLoading = false;
-      });
-    } catch (error) {
-      runInAction(() => {
-        this.error = 'Failed to add item';
-        this.isLoading = false;
-      });
-    }
+
+    // Use socket service to send add inventory item event
+    socketService.sendEvent('add_inventory_item', {
+      character_id: newItem.characterId,
+      item_name: newItem.name,
+      item_description: newItem.description,
+      item_quantity: newItem.quantity,
+      value: newItem.value,
+      weight: newItem.weight,
+      type: newItem.type,
+      rarity: newItem.rarity,
+      equipped: newItem.equipped
+    });
   }
 
   // Update an existing inventory item

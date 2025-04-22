@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import characterStore, { Character } from '../stores/CharacterStore';
+import characterStore from '../stores/CharacterStore';
 import '../styles/CharacterManagement.css';
 import apiHandler from '../services/apiHandler';
 
@@ -18,10 +18,7 @@ const CharacterManagement: React.FC = () => {
   };
   
   const handleDeleteCharacter = async (characterId: string) => {
-    const success = await apiHandler.deleteCharacter(characterId);
-    if (success) {
-      await characterStore.fetchCharacters();
-    }
+    apiHandler.deleteCharacter(characterId);
   };
   
   const handleAddCharacter = () => {

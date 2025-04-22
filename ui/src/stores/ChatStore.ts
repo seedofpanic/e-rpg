@@ -1,6 +1,6 @@
-import { makeAutoObservable, runInAction } from 'mobx';
-import { io, Socket } from 'socket.io-client';
+import { makeAutoObservable } from 'mobx';
 import personaStore from './PersonaStore';
+import socketService from '../services/api';
 
 // Local storage key for game state file path
 const SAVE_FILE_PATH_STORAGE_KEY = 'e-rpg-save-file-path';
@@ -23,9 +23,6 @@ export interface Scene {
 }
 
 class ChatStore {
-  // Connection
-  socket: Socket | null = null;
-  isConnected: boolean = false;
   
   // Messages
   messages: Message[] = [];
@@ -34,22 +31,18 @@ class ChatStore {
   // Persona
   currentPersonaId: string = '';
   
-  // Scene
-  currentScene: Scene = {
-    description: '',
-    text: '',
-    lore: ''
-  };
-  
-  // Get the base lore
-  get baseLore(): string {
-    return this.currentScene.lore || '';
-  }
-  
   // Settings
   saveFilePath: string = '';
   autosaveEnabled: boolean = true;
   autosaveThreshold: number = 5;
+
+  skillRollModal: {
+    open: boolean;
+    characterId: string;
+  } = {
+    open: false,
+    characterId: ''
+  };
   
   // UI State
   messageInput: string = '';
@@ -68,37 +61,31 @@ class ChatStore {
 
   initializeSocket() {
     try {
-      this.socket = io();
-      
-      this.socket.on('connect', () => {
+      socketService.on('connect', () => {
         console.log('Socket connected');
         this.setConnected(true);
-        
-        // Request initial state
-        this.requestInitialState();
-        this.requestSettings();
         
         // Load the default persona if available
         this.ensureCurrentPersona();
       });
       
-      this.socket.on('disconnect', () => {
+      socketService.on('disconnect', () => {
         console.log('Socket disconnected');
         this.setConnected(false);
       });
       
       // Listen for character messages
-      this.socket.on('message', (data) => {
+      socketService.on('message', (data) => {
         this.addMessage(data);
       });
       
       // Listen for new messages (separate from regular message events)
-      this.socket.on('new_message', (data) => {
+      socketService.on('new_message', (data) => {
         this.addMessage(data);
       });
       
       // Listen for loading messages in bulk (e.g., when loading a saved game)
-      this.socket.on('load_messages', (messages) => {
+      socketService.on('load_messages', (messages) => {
         console.log('Loading messages:', messages.length);
         // Clear existing messages first
         this.setMessages([]);
@@ -109,56 +96,54 @@ class ChatStore {
       });
       
       // Listen for game state updates
-      this.socket.on('scene_updated', (data) => {
-        this.updateScene(data);
+      socketService.on('scene_updated', (data) => {
+        console.log('Received scene update:', data);
+        if (typeof data === 'string') {
+          this.updateScene(data);
+        } else if (data && typeof data === 'object') {
+          this.updateScene(data);
+        }
       });
       
       // Listen for thinking status
-      this.socket.on('thinking_started', () => {
+      socketService.on('thinking_started', () => {
         this.setThinking(true);
       });
       
-      this.socket.on('thinking_stopped', () => {
+      socketService.on('thinking_stopped', () => {
         this.setThinking(false);
       });
       
-      this.socket.on('thinking_ended', () => {
+      socketService.on('thinking_ended', () => {
         this.setThinking(false);
       });
       
       // Listen for save file path updates
-      this.socket.on('save_file_path', (data) => {
+      socketService.on('save_file_path', (data) => {
         this.setSaveFilePath(data.filepath);
       });
       
       // Listen for autosave settings updates
-      this.socket.on('autosave_settings', (data) => {
+      socketService.on('autosave_settings', (data) => {
         this.autosaveEnabled = data.enabled;
         this.autosaveThreshold = data.threshold;
       });
       
       // Listen for autosave status updates
-      this.socket.on('autosave_status', (data) => {
+      socketService.on('autosave_status', (data) => {
         this.autosaveEnabled = data.enabled;
       });
       
       // Listen for game reset events
-      this.socket.on('game_reset', () => {
+      socketService.on('game_reset', () => {
         this.resetState();
       });
       
       // Listen for notification events
-      this.socket.on('notification', (data) => {
+      socketService.on('notification', (data) => {
         // toast notification using UI notifications system
         console.log('Notification:', data);
       });
-      
-      // Listen for personas updates - reload personas when this event is received
-      this.socket.on('personas_updated', () => {
-        // Reload personas from the server
-        personaStore.loadPersonas();
-      });
-      
     } catch (error) {
       console.error('Socket initialization error:', error);
     }
@@ -255,13 +240,25 @@ class ChatStore {
   // Scene Actions
   updateScene(data: any) {
     console.log('Updating scene with data:', data);
-    // The backend sends { scene: string, lore: string }
-    // We need to map it to our Scene interface
-    this.currentScene = {
-      description: data.scene || data.description || '',
-      text: data.scene || data.text || '',
-      lore: data.lore || this.currentScene.lore || ''
-    };
+    
+    // Check if we're receiving string data directly
+    if (typeof data === 'string') {
+      this.currentScene = {
+        description: data,
+        text: data,
+        lore: this.currentScene.lore || ''
+      };
+    } 
+    // Check if data is an object with scene property
+    else if (data && typeof data === 'object') {
+      // The backend sends { scene: string, lore: string }
+      // We need to map it to our Scene interface
+      this.currentScene = {
+        description: data.scene || data.description || '',
+        text: data.scene || data.text || '',
+        lore: data.lore || this.currentScene.lore || ''
+      };
+    }
     
     console.log('Scene updated:', this.currentScene);
   }
@@ -316,16 +313,7 @@ class ChatStore {
       lore: loreText
     };
   }
-  
-  // Method to request settings from the server
-  requestSettings() {
-    if (!this.socket) return;
-    
-    this.socket.emit('get_autosave_settings');
-    this.socket.emit('get_save_file_path');
-    this.socket.emit('get_autosave_status');
-  }
-  
+
   // Save game to a file
   saveGame(path?: string) {
     if (!this.socket) return;
@@ -333,7 +321,6 @@ class ChatStore {
     const finalPath = path || this.saveFilePath;
     
     this.socket.emit('save_game', {
-      requestId: `save-${Date.now()}`,
       filepath: finalPath
     });
     
@@ -349,7 +336,6 @@ class ChatStore {
     const finalPath = path || this.saveFilePath;
     
     this.socket.emit('load_game', {
-      requestId: `load-${Date.now()}`,
       filepath: finalPath
     });
     
@@ -364,15 +350,6 @@ class ChatStore {
     
     this.socket.emit('reset_game');
   }
-  
-  // Method to request initial state
-  requestInitialState() {
-    if (!this.socket) return;
-    
-    this.socket.emit('update_game_state', {
-      requestId: `init-${Date.now()}`,
-    });
-  }
 
   // Override setter for saveFilePath to also update localStorage
   setSaveFilePath(path: string) {
@@ -384,6 +361,11 @@ class ChatStore {
     } else {
       localStorage.removeItem(SAVE_FILE_PATH_STORAGE_KEY);
     }
+  }
+
+  openSkillRoll(characterId: string) {
+     this.skillRollModal.open = true;
+     this.skillRollModal.characterId = characterId;
   }
 
   setConnected(connected: boolean) {

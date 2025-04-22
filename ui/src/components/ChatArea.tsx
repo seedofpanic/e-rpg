@@ -45,13 +45,6 @@ const ChatArea: React.FC = observer(() => {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   };
-
-  // Load personas on mount if needed
-  useEffect(() => {
-    if (personaStore.personas.length === 0 && !personaStore.isLoading) {
-      personaStore.loadPersonas();
-    }
-  }, []);
   
   // Set current persona to active persona in chatStore when available
   useEffect(() => {
