@@ -21,6 +21,8 @@ def process_character(character_id: str):
         return False
 
     result = character.generate_response()
+    if not result:
+        return False
     text = result["text"]
         
     # Add character response to game_state messages

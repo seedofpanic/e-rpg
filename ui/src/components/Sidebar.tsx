@@ -5,7 +5,6 @@ import characterStore, { Character } from '../stores/CharacterStore';
 import personaStore from '../stores/PersonaStore';
 import socketService from '../services/api';
 import Settings from './Settings';
-import SkillRoll from './SkillRoll';
 import SaveFileInput from './SaveFileInput';
 import styles from '../styles/main.module.css';
 import '../styles/SaveFileInput.css';
@@ -210,10 +209,9 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
           characterStore.charactersIds.map((characterId: string) => {
             const character = characterStore.characters[characterId];
             return (
-            <button
+            <div
               key={characterId}
-              className={`${styles.characterItem} ${character.active ? 'active' : 'inactive'}`}
-              onClick={() => characterStore.toggleCharacterActive(characterId)}
+              className={`${styles.characterItem} ${character.active ? styles.active : styles.inactive}`}
             >
               <img 
                 src={formatAvatarUrl(character.avatar)} 
@@ -226,9 +224,9 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
                 title="Click to change avatar"
                 style={{ cursor: 'pointer' }}
               />
-              <div className="character-info">
-                <div className="character-name">{character.name}</div>
-                <small className={`status ${character.active ? 'text-success' : 'text-secondary'}`}>
+              <div className={styles.characterInfo} onClick={() => characterStore.toggleCharacterActive(characterId)}>
+                <div className={styles.characterName}>{character.name}</div>
+                <small className={`${styles.status} ${character.active ? styles.statusActive : styles.statusInactive}`}>
                   {character.active ? 'Active' : 'Inactive'}
                 </small>
               </div>
@@ -241,7 +239,7 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
                   <i className="bi bi-dice-6"></i>
                 </div>
               )}
-            </button>
+            </div>
           )
         })
         )}

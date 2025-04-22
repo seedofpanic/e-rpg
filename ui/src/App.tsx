@@ -8,6 +8,7 @@ import CharacterManagement from './components/CharacterManagement';
 import InventoryManagement from './components/InventoryManagement';
 import Notifications from './components/Notifications';
 import styles from './styles/main.module.css';
+import SkillRollModal from './components/SkillRollModal';
 
 const App: React.FC = observer(() => {
   const [activeView, setActiveView] = useState<string>('chat');
@@ -47,6 +48,7 @@ const App: React.FC = observer(() => {
         {renderActiveView()}
       </div>
       <Notifications />
+      <SkillRollModal/>
     </div>
   );
 });

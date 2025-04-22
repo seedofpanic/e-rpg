@@ -190,6 +190,11 @@ class ChatStore {
      this.skillRollModal.open = true;
      this.skillRollModal.characterId = characterId;
   }
+
+  closeSkillRoll() {
+    this.skillRollModal.open = false;
+    this.skillRollModal.characterId = '';
+  }
 }
 
 export default new ChatStore(); 

@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
-import characterStore, { Character } from '../stores/CharacterStore';
+import characterStore from '../stores/CharacterStore';
 import socketService from '../services/api';
 import '../styles/SkillRoll.css';
+import ChatStore from '../stores/ChatStore';
 
 interface SkillRollProps {
-  characterId: string;
-  id?: string;
 }
 
 // Helper function to get formatted skill name
@@ -26,25 +25,21 @@ const SKILL_CATEGORIES = {
   charisma: ['deception', 'intimidation', 'performance', 'persuasion']
 };
 
-const SkillRoll: React.FC<SkillRollProps> = observer(({ characterId, id }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const character = characterStore.getCharacterById(characterId);
+const SkillRollModal: React.FC<SkillRollProps> = observer(() => {
+  const character = characterStore.getCharacterById(ChatStore.skillRollModal.characterId);
   
   if (!character) {
     return null;
   }
 
   const handleRollSkill = (skillName: string) => {
-    const socket = socketService.getSocket();
-    if (!socket) return;
-    
-    socket.emit('roll_skill', {
-      character_id: characterId,
+    socketService.sendEvent('roll_skill', {
+      character_id: ChatStore.skillRollModal.characterId,
       skill_name: skillName
     });
     
     // Auto-close the menu after selecting a skill
-    setIsOpen(false);
+    ChatStore.closeSkillRoll();
   };
 
   // Calculate modifier for display in tooltips
@@ -99,27 +94,26 @@ Roll: 1d20 ${formatModifier(abilityModifier)} (${abilityKey}) ${isProficient ? `
   };
 
   return (
-    <div className="skill-roll-container" id={id}>
-      <button 
-        className="skill-roll-toggle"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {isOpen ? 'Close Skills' : 'Skill Rolls'}
-      </button>
-      
-      {isOpen && (
-        <div className="skill-roll-menu">
-          <h3>Skill Rolls for {character.name}</h3>
-          
-          <div className="skill-categories">
-            {Object.entries(SKILL_CATEGORIES).map(([category, skills]) => 
-              renderSkillCategory(category, skills)
-            )}
+    <div className="skill-roll-container">
+      {ChatStore.skillRollModal.open && (
+        <>
+          <div className="modal-backdrop" onClick={ChatStore.closeSkillRoll}></div>
+          <div className="skill-roll-menu">
+            <div className="skill-roll-header">
+              <h3>Skill Rolls for {character.name}</h3>
+              <button className="close-modal-button" onClick={ChatStore.closeSkillRoll}>×</button>
+            </div>
+            
+            <div className="skill-categories">
+              {Object.entries(SKILL_CATEGORIES).map(([category, skills]) => 
+                renderSkillCategory(category, skills)
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
 });
 
-export default SkillRoll; 
+export default SkillRollModal; 
