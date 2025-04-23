@@ -117,12 +117,6 @@ To build the UI for production deployment:
 
 3. The built files will be available in the `ui/dist` directory and can be served by the Flask application
 
-## Creating Character Avatars
-Place character avatar images in the `ui/public/images/` directory. Make sure to include:
-- `gm.png` for the Game Master
-- `system.png` for system messages
-- Character avatar images that match the avatar filenames specified in your character definitions
-
 ## Customizing Characters
 Characters can be created and customized directly through the web interface. Each character can have:
 - Unique personality traits and background

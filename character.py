@@ -480,7 +480,7 @@ _characters = {
 
 def update_avatar(character):
     global _characters
-    if os.path.exists("ui/public/images/" + character.avatar):
+    if os.path.exists("static/images/" + character.avatar):
         _characters[character.id].avatar = character.avatar
     else:
         _characters[character.id].avatar = "avatar.jpg"

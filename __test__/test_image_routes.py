@@ -23,7 +23,7 @@ def test_image_routes():
     # Test a few known images from the avatars directory
     test_paths = [
         "/images/avatars/gm.png",
-        "/ui/public/images/avatars/gm.png"
+        "/static/images/avatars/gm.png"
     ]
     
     # Create a directory to save test downloads

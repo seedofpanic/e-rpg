@@ -67,7 +67,7 @@ def get_gm_avatar():
     # Get GM avatar - check if custom GM avatar exists in app config
     gm_avatar = "avatar.jpg"
     gm_avatar_path = f"avatars/gm.png"
-    if os.path.exists(os.path.join(app.root_path, 'ui/public/images/', gm_avatar_path)):
+    if os.path.exists(os.path.join(app.root_path, 'static/images/', gm_avatar_path)):
         gm_avatar = gm_avatar_path
     return gm_avatar
 
@@ -82,8 +82,8 @@ genai.configure(api_key=DEFAULT_GEMINI_API_KEY)
 
 # Ensure avatar directories exist
 avatar_dirs = [
-    os.path.join(app.root_path, 'ui/public/images'),
-    os.path.join(app.root_path, 'ui/public/images/avatars')
+    os.path.join(app.root_path, 'static/images'),
+    os.path.join(app.root_path, 'static/images/avatars')
 ]
 for directory in avatar_dirs:
     os.makedirs(directory, exist_ok=True)
@@ -215,7 +215,15 @@ def handle_set_current_persona(data):
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
-    return send_from_directory(os.path.join(app.root_path, 'ui/public/images/avatars'), filename)
+    return send_from_directory(os.path.join(app.root_path, 'static/images/avatars'), filename)
+
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory(os.path.join(app.root_path, 'static'), path)
+
+@app.route('/')
+def serve_index():
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'index.html')
 
 @socketio.on('get_save_file_path')
 def handle_get_save_file_path(data=None):
@@ -366,7 +374,7 @@ def upload_avatar():
     
     if file:
         # Create directory if it doesn't exist
-        avatar_dir = os.path.join(app.root_path, 'ui/public/images/avatars')
+        avatar_dir = os.path.join(app.root_path, 'static/images/avatars')
         os.makedirs(avatar_dir, exist_ok=True)
 
         print(f"Uploading avatar for {character_id} {file.filename}")
@@ -1077,3 +1085,6 @@ def upload_persona_avatar():
     emit_personas_updated()
 
     return jsonify({"avatar_url": avatar_url})
+
+if __name__ == '__main__':
+    socketio.run(app, debug=False, host='0.0.0.0', port=5000, use_reloader=False, log_output=False)

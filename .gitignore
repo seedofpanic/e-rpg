@@ -74,4 +74,5 @@ saves/*
 
 node_modules/
 ui/public/images/avatars/*
+static/images/avatars/*
 models/*

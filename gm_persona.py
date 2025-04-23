@@ -297,7 +297,7 @@ class PersonaManager:
         
         try:
             # Ensure avatars directory exists
-            avatars_dir = "ui/public/images/avatars"
+            avatars_dir = "static/images/avatars"
             os.makedirs(avatars_dir, exist_ok=True)
             
             # Get file extension and create a unique filename
