@@ -10,3 +10,4 @@ Pillow
 huggingface-hub
 google-genai
 sounddevice
+flask_socketio
