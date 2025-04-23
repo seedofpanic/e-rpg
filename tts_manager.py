@@ -8,8 +8,10 @@ import torch
 import sounddevice as sd
 import threading
 import numpy as np
+import base64
 from urllib.request import urlretrieve
 from pathlib import Path
+from app_socket import send_socket_message
 
 print(f"CUDA available: {torch.cuda.is_available()}")
 
@@ -36,6 +38,9 @@ class TTSManager:
         self._russian_voice_id = None
         self._english_voice_id = None
         self._current_language = language_code  # Default language
+        
+        # New flag to control where audio is played
+        self.play_in_ui = True  # Default to playing in UI
 
         # Model URLs by language
         self.model_urls = {
@@ -209,10 +214,76 @@ class TTSManager:
         """
         # Process all text at once
         audio = self._generate_audio(text, selected_voice, speech_rate, speech_volume)
+        print(f"Audio generated")
         if audio is not None:
-            sd.play(audio.numpy(), self.sample_rate, device=self.audio_device)
-            sd.wait()
+            if self.play_in_ui:
+                # Send to UI for playback
+                print("Sending audio to UI")
+                self._send_audio_to_ui(audio, text)
+            else:
+                # Play locally using sounddevice
+                sd.play(audio.numpy(), self.sample_rate, device=self.audio_device)
+                sd.wait()
             print("Finished speaking text")
+            
+    def _encode_audio_to_base64(self, audio_tensor):
+        """Convert audio tensor to base64 encoded string
+        
+        Args:
+            audio_tensor: PyTorch tensor containing audio data
+            
+        Returns:
+            Base64 encoded string of audio data
+        """
+        try:
+            # Convert to numpy array
+            audio_np = audio_tensor.numpy()
+            
+            # Normalize to 32-bit float range for Web Audio API compatibility
+            # Web Audio API expects 32-bit float PCM data in range [-1.0, 1.0]
+            audio_np = np.clip(audio_np, -1.0, 1.0)
+            audio_float32 = audio_np.astype(np.float32)
+            
+            # Convert to bytes
+            audio_bytes = audio_float32.tobytes()
+            
+            # Encode to base64
+            audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+            
+            return audio_base64
+        except Exception as e:
+            print(f"Error encoding audio: {str(e)}")
+            return None
+            
+    def _send_audio_to_ui(self, audio, text=""):
+        """Send audio data to UI for playback
+        
+        Args:
+            audio: PyTorch tensor containing audio data
+            text: Optional text that was spoken (for display/debugging)
+        """
+        try:
+            # Encode audio to base64
+            audio_base64 = self._encode_audio_to_base64(audio)
+            
+            if audio_base64:
+                # Prepare data for socket
+                audio_data = {
+                    'audio': audio_base64,
+                    'text': text,
+                    'sample_rate': self.sample_rate,
+                    'voice': self.current_voice,
+                    'format': 'float32',  # Specify audio format
+                    'channels': 1  # Mono audio
+                }
+                
+                # Send via WebSocket
+                send_socket_message('tts_audio', audio_data)
+                print("Audio sent to UI")
+            else:
+                print("Failed to encode audio for UI")
+        except Exception as e:
+            print(f"Error sending audio to UI: {str(e)}")
 
     def process_text_directly(self, text, rate=None, volume=None, voice=None):
         """Process text directly
@@ -234,27 +305,9 @@ class TTSManager:
             return
 
         # Ensure we have a valid voice
-        if not selected_voice and self.speakers:
+        if not selected_voice or selected_voice not in self.speakers:
             selected_voice = self.speakers[0]
             print(f"No voice specified, using {selected_voice}")
-
-        # Only apply language detection if no specific voice was provided
-        if voice is None:
-            # Use current model with the most appropriate voice
-            # Don't try to change models based on detected language
-            detected_lang = self._detect_language(text)
-            if detected_lang:
-                # Try to find a voice for the detected language
-                if detected_lang == "ru" and self._russian_voice_id:
-                    selected_voice = self._russian_voice_id
-                elif detected_lang == "en" and self._english_voice_id:
-                    selected_voice = self._english_voice_id
-                else:
-                    # Try to find a voice for the detected language
-                    lang_speakers = [
-                        s for s in self.speakers if s.startswith(f'{detected_lang}_')]
-                    if lang_speakers:
-                        selected_voice = lang_speakers[0]
 
         # Acquire lock to ensure only one text is processed at a time
         with self.tts_lock:
@@ -325,7 +378,7 @@ class TTSManager:
         # Convert back to torch tensor
         return torch.tensor(new_audio)
 
-    def set_tts_properties(self, rate=None, volume=None, voice=None):
+    def set_tts_properties(self, rate=None, volume=None, voice=None, play_in_ui=None):
         """
         Set default properties for text-to-speech
 
@@ -333,6 +386,7 @@ class TTSManager:
             rate: Speed of speech (float multiplier)
             volume: Volume level (0.0 to 1.0)
             voice: Voice ID to use for speech
+            play_in_ui: Boolean flag to control where audio is played
 
         Returns:
             Dictionary of current TTS properties
@@ -355,6 +409,9 @@ class TTSManager:
                     if voice.startswith(f"{lang}_"):
                         self._current_language = lang
                         break
+        
+        if play_in_ui is not None:
+            self.play_in_ui = play_in_ui
 
         # Return current properties
         return self.get_tts_properties()
@@ -375,7 +432,8 @@ class TTSManager:
             'volume': self.volume,
             'voice': self.current_voice,
             'audio_device': self.audio_device,
-            'language': self._current_language
+            'language': self._current_language,
+            'play_in_ui': self.play_in_ui
         }
 
     def set_russian_voice(self):

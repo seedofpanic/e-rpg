@@ -1,6 +1,9 @@
 // SocketService to handle all backend communication via Socket.IO
 import { io, Socket } from 'socket.io-client';
 import notificationStore from '../stores/NotificationStore';
+import { AudioPlayer } from './audioPlayer';
+
+const audioPlayer = new AudioPlayer();
 
 export interface SocketResponse<T = any> {
   success: boolean;
@@ -60,6 +63,8 @@ class SocketService {
           notificationStore.showInfo(data.message);
       }
     });
+
+    audioPlayer.initialize(this);
   }
 
   /**
