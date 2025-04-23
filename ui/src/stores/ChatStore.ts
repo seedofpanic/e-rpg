@@ -1,6 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import personaStore from './PersonaStore';
 import socketService from '../services/api';
+import notificationStore from './NotificationStore';
 
 // Local storage key for game state file path
 const SAVE_FILE_PATH_STORAGE_KEY = 'e-rpg-save-file-path';
@@ -87,6 +88,17 @@ class ChatStore {
     socketService.on('notification', (data) => {
       // toast notification using UI notifications system
       console.log('Notification:', data);
+    });
+
+    socketService.on('voice_transcription_result', (data) => {
+      if (data.success && data.text) {
+        // Add the transcribed text to the input box
+        this.setMessageInput(this.messageInput + data.text);
+        notificationStore.showSuccess('Voice transcription completed successfully');
+      } else {
+        console.error('Voice transcription error:', data.error);
+        notificationStore.showError(`Voice transcription failed: ${data.error || 'Unknown error'}`);
+      }
     });
   }
   

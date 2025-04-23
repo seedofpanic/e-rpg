@@ -5,6 +5,8 @@ import personaStore, { Persona } from '../stores/PersonaStore';
 import ChatMessage from './ChatMessage';
 import PersonaManagement from './PersonaManagement';
 import styles from '../styles/main.module.css';
+import socketService from '../services/api';
+import notificationStore from '../stores/NotificationStore';
 
 const ChatArea: React.FC = observer(() => {  
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -12,6 +14,11 @@ const ChatArea: React.FC = observer(() => {
   const [showPersonaDropdown, setShowPersonaDropdown] = useState(false);
   const [isPersonaManagementOpen, setIsPersonaManagementOpen] = useState(false);
   const [personaCreateMode, setPersonaCreateMode] = useState(false);
+  
+  // Voice recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [recorder, setRecorder] = useState<MediaRecorder | null>(null);
+  const audioChunks = useRef<Blob[]>([]);
   
   // Helper function to format avatar URL
   const formatAvatarUrl = (avatarPath: string, timestamp?: number) => {
@@ -94,6 +101,84 @@ const ChatArea: React.FC = observer(() => {
     };
   }, []);
   
+  // Start or stop recording based on mic button click
+  const toggleRecording = async () => {
+    if (isRecording) {
+      // Stop recording
+      if (recorder) {
+        recorder.stop();
+      }
+      setIsRecording(false);
+    } else {
+      // Don't start recording if already thinking
+      if (chatStore.isThinking) {
+        notificationStore.showInfo('Please wait until processing is complete');
+        return;
+      }
+      
+      try {
+        // Check if MediaRecorder is supported by the browser
+        if (!window.MediaRecorder) {
+          notificationStore.showError('Your browser does not support voice recording. Please use a modern browser like Chrome or Firefox.');
+          return;
+        }
+        
+        // Request permission to use the microphone
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        setRecorder(mediaRecorder);
+        
+        audioChunks.current = [];
+        
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunks.current.push(event.data);
+          }
+        };
+        
+        mediaRecorder.onstop = () => {
+          try {
+            const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
+            
+            // Show notification that we're processing the audio
+            notificationStore.showInfo('Processing voice input...');
+            
+            // Convert blob to base64
+            const reader = new FileReader();
+            reader.readAsDataURL(audioBlob);
+            reader.onloadend = () => {
+              const base64data = reader.result as string;
+              
+              // Send to server
+              socketService.sendEvent('voice_transcribe', {
+                audio: base64data
+              });
+            };
+            
+            // Stop all tracks of the stream
+            stream.getTracks().forEach(track => track.stop());
+          } catch (error) {
+            console.error('Error processing audio:', error);
+            notificationStore.showError('Error processing audio. Please try again.');
+          }
+        };
+        
+        mediaRecorder.start();
+        setIsRecording(true);
+        notificationStore.showInfo('Recording started... Click the mic button again to stop.');
+      } catch (error) {
+        console.error('Error starting voice recording:', error);
+        
+        // Handle permission denied error
+        if (error instanceof DOMException && error.name === 'NotAllowedError') {
+          notificationStore.showError('Microphone access denied. Please allow microphone access in your browser settings.');
+        } else {
+          notificationStore.showError('Could not start recording. Please check your microphone and try again.');
+        }
+      }
+    }
+  };
+  
   // Handle send message with keyboard shortcut
   const handleKeyPress = (e: KeyboardEvent) => {
     if (e.code === 'Enter' && !chatStore.isThinking) {
@@ -145,6 +230,19 @@ const ChatArea: React.FC = observer(() => {
   // Get the active persona
   const activePersona = personaStore.personas.find(p => p.id === chatStore.currentPersonaId) || 
                         personaStore.currentPersona;
+  
+  // Handle component unmount and cleanup
+  useEffect(() => {
+    return () => {
+      // Clean up audio resources on unmount
+      if (recorder && isRecording) {
+        recorder.stop();
+        if (recorder.stream) {
+          recorder.stream.getTracks().forEach(track => track.stop());
+        }
+      }
+    };
+  }, [recorder, isRecording]);
   
   return (
     <div className={styles.chatArea}>
@@ -243,6 +341,15 @@ const ChatArea: React.FC = observer(() => {
               disabled={chatStore.isThinking || !chatStore.messageInput.trim()}
             >
               Send
+            </button>
+            
+            <button
+              className={`btn ${styles.btnSecondary} ms-2`}
+              onClick={toggleRecording}
+              title={isRecording ? "Stop recording" : chatStore.isThinking ? "Processing..." : "Start voice input"}
+              disabled={chatStore.isThinking && !isRecording}
+            >
+              <i className={`bi ${isRecording ? 'bi-mic-fill text-danger' : chatStore.isThinking ? 'bi-hourglass-split' : 'bi-mic'}`}></i>
             </button>
             
             <button 

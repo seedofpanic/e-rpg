@@ -362,10 +362,14 @@ class Character:
         
         result = generate_response(prompt, temperature=0.85)
 
-        if result and "text" in result:
+        text = None
+        if result:
+            text = result.text
+
+        if text:
             # Use the character's voice if set in a separate thread
-            threading.Thread(target=tts.speak_text, args=(result["text"],), kwargs={"voice": self.voice_id}).start()
-            self.do_tools(result["text"])
+            threading.Thread(target=tts.speak_text, args=(text,), kwargs={"voice": self.voice_id}).start()
+            self.do_tools(text)
 
         return result
 
@@ -492,7 +496,7 @@ def update_character(character):
 def get_characters():
     return _characters
 
-def get_active_characters():
+def get_active_characters() -> dict[str, Character]:
     """Return only active characters"""
     return {char_id: char for char_id, char in _characters.items() if char.active}
 

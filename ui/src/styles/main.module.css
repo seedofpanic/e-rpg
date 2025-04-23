@@ -299,14 +299,36 @@ html, body {
 }
 
 .btnSecondary {
-    background-color: #1f4068;
-    border-color: #1f4068;
-    color: white;
+    background-color: #2a3a57;
+    border-color: #2a3a57;
+    color: #e6e6e6;
+    transition: all 0.2s ease;
 }
 
-.btnSecondary.active {
-    background-color: #3498db;
-    border-color: #3498db;
+.btnSecondary.active, .btnSecondary:hover {
+    background-color: #3a4a67;
+    border-color: #3a4a67;
+    color: #ffffff;
+}
+
+/* Mic button styles */
+.btnSecondary i.bi-mic, .btnSecondary i.bi-mic-fill, .btnSecondary i.bi-hourglass-split {
+    font-size: 1.1rem;
+}
+
+.btnSecondary i.bi-mic-fill.text-danger {
+    color: #e74c3c !important;
+    animation: pulse 1.5s infinite;
+}
+
+.btnSecondary i.bi-hourglass-split {
+    color: #f1c40f !important;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .btnOutlineLight {

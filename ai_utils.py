@@ -132,17 +132,18 @@ def generate_response(prompt, temperature=0.5, tools=None, api_key=None, defer_t
         config=config
     )
     
-    logger.info(f"Output response: {response.text}")
+    if loggerOn:
+        logger.info(f"Output response: {response.candidates[0].content}")
+
     # Process the response
     if not tools:
-        if loggerOn:
-            return {"text": response.text}
+        return response
 
     text = response.text
 
     if defer_tools:
-        return {"text": text, "response": response}
+        return response
     else:
         if response.function_calls:
             run_tools(response.function_calls, tools)
-        return {"text": text}
+        return response

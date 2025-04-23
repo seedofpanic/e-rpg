@@ -6,7 +6,6 @@ load_dotenv()
 import os
 import time
 from flask import request, jsonify, url_for, send_from_directory
-import google.generativeai as genai
 from base_lore import get_base_lore, set_base_lore
 from dialog_history import DialogueMessage, append_to_dialog_history, get_dialogue_history, set_dialog_history
 from game_state import game_state
@@ -15,8 +14,14 @@ from message_analyzers import decide_acting_character_for_master
 from update_scene import get_current_scene, set_current_scene
 from character import Character, get_character_by_id, get_characters, set_characters, set_character_active, update_character
 from gm_persona import get_personas, get_persona_by_id, create_persona, remove_persona, toggle_favorite, set_default_persona, get_default_persona, persona_manager
-from ai_utils import set_default_api_key, update_api_key, remove_api_key
+from ai_utils import set_default_api_key, update_api_key, remove_api_key, get_current_api_key, generate_response
 from tts_manager import tts
+import base64
+from google import genai
+
+# Import logging for voice transcription
+from logger_config import setup_logger
+logger = setup_logger(__name__)
 
 # Helper function for Socket.IO responses to handle request/response pattern
 def send_socket_response(request_id, payload):
@@ -73,12 +78,10 @@ def get_gm_avatar():
 
 # Load environment variables
 DEFAULT_GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+current_language = "English" if os.getenv("LANGUAGE", "en") == "en" else "Russian"
 
 # Set the default API key in ai_utils
 set_default_api_key(DEFAULT_GEMINI_API_KEY)
-
-# Configure Google Gemini API with default key
-genai.configure(api_key=DEFAULT_GEMINI_API_KEY)
 
 # Ensure avatar directories exist
 avatar_dirs = [
@@ -1085,6 +1088,79 @@ def upload_persona_avatar():
     emit_personas_updated()
 
     return jsonify({"avatar_url": avatar_url})
+
+# Voice transcription endpoint
+@socketio.on('voice_transcribe')
+def handle_voice_transcription(data):
+    try:
+        audio_data = data.get('audio')
+        if not audio_data:
+            send_socket_message('voice_transcription_result', {
+                'success': False, 
+                'error': 'No audio data provided'
+            })
+            return
+        
+        # Notify client that we're starting transcription
+        send_socket_message('thinking_started')
+        
+        # Decode the base64 audio data
+        try:
+            # Split if it's a data URL (e.g., data:audio/webm;base64,...)
+            if ',' in audio_data:
+                header, encoded_data = audio_data.split(',', 1)
+                mime_type = header.split(':')[1].split(';')[0] if ':' in header else 'audio/webm'
+            else:
+                encoded_data = audio_data
+                mime_type = 'audio/webm'  # Default mime type
+                
+            audio_bytes = base64.b64decode(encoded_data)
+            
+        except Exception as e:
+            logger.error(f"Error decoding audio data: {str(e)}")
+            send_socket_message('thinking_stopped')
+            send_socket_message('voice_transcription_result', {
+                'success': False, 
+                'error': f'Error decoding audio: {str(e)}'
+            })
+            return
+        
+        # Generate content with Gemini using the audio data
+        try:
+            response = generate_response(
+                [
+                    "Transcribe the following audio to text. Return only the transcribed text without any additional explanation. The language is Russian.",
+                    genai.types.Part.from_bytes(
+                        data=audio_bytes,
+                        mime_type=mime_type
+                    )
+                ]
+            )
+            
+            # Notify client that thinking has stopped
+            send_socket_message('thinking_stopped')
+            
+            # Return the transcribed text to the client
+            send_socket_message('voice_transcription_result', {
+                'success': True,
+                'text': response.text
+            })
+            
+        except Exception as e:
+            logger.error(f"Error in Gemini transcription: {str(e)}")
+            send_socket_message('thinking_stopped')
+            send_socket_message('voice_transcription_result', {
+                'success': False, 
+                'error': f'Error in transcription: {str(e)}'
+            })
+            
+    except Exception as e:
+        logger.error(f"Error in voice transcription: {str(e)}")
+        send_socket_message('thinking_stopped')
+        send_socket_message('voice_transcription_result', {
+            'success': False,
+            'error': str(e)
+        })
 
 if __name__ == '__main__':
     socketio.run(app, debug=False, host='0.0.0.0', port=5000, use_reloader=False, log_output=False)

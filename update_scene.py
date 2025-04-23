@@ -56,11 +56,12 @@ def do_update_scene(sender, message):
         result = update_scene(get_current_scene(), f"{sender}: {message}")
         
         # Check if scene was actually updated
-        if result["text"] != get_current_scene():
-            set_current_scene(result["text"])
+        text = result.text
+        if text != get_current_scene():
+            set_current_scene(text)
             # Emit scene_updated event to clients with the full scene object
-            logger.info(f"Scene updated to {result['text']}")
-            send_socket_message('scene_updated', {'scene': result['text']})
+            logger.info(f"Scene updated to {text}")
+            send_socket_message('scene_updated', {'scene': text})
         
     except Exception as e:
         # Notify clients of update error

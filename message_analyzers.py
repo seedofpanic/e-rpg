@@ -8,32 +8,28 @@ from update_scene import do_update_scene
 from queue import Queue
 from google.genai.types import FunctionDeclaration, Tool, Schema
 
-characters_queue: Queue[str] = Queue()
-tmp_characters_queue: Queue[str] = Queue()
+character_to_act: str | None = None
 
 def request_character_response(character_id: str):
-    if tmp_characters_queue.empty():
-        tmp_characters_queue.put(character_id)
+    global character_to_act
+    if not character_to_act:
+        character_to_act = character_id
 
-def process_character(character_id: str):
-    character = get_character_by_id(character_id)
-    if not character:
-        return False
-
+def process_character(character: Character):
     result = character.generate_response()
     if not result:
         return False
-    text = result["text"]
+    text = result.text
         
     # Add character response to game_state messages
-    message = DialogueMessage(character.name, text, character.avatar, character_id)
+    message = DialogueMessage(character.name, text, character.avatar, character.id)
     append_to_dialog_history(message)
     
     
     # output character response to the chat
     send_socket_message('new_message', message.to_dict())
 
-    do_update_scene(character.name, result["text"])
+    do_update_scene(character.name, text)
 
 request_character_response_declaration = Tool(function_declarations=[FunctionDeclaration(
     name="request_character_response",
@@ -52,10 +48,8 @@ request_character_response_declaration = Tool(function_declarations=[FunctionDec
 )])
 
 def analyzer_process(prompt: str):
-    global characters_queue
-    global tmp_characters_queue
+    global character_to_act
     
-    tmp_characters_queue = Queue()
     # Pass the tool function to generate_response
     generate_response(
         prompt, 
@@ -63,22 +57,25 @@ def analyzer_process(prompt: str):
         tools=[
             (request_character_response, request_character_response_declaration),
         ],
-        loggerOn=True
+        loggerOn=False
     )
+
+    print("GOT CHARACTER TO ACT: ", character_to_act)
 
     characters = get_active_characters()
     print("characters: ", characters)
-    character_id = tmp_characters_queue.get() if not tmp_characters_queue.empty() else None
+    character_id = character_to_act
+    character_to_act = None
     print("character_id: ", character_id)
     character = get_character_by_id(character_id)
 
     print("character_id: ", character_id)
     if not character:
         # find leader in characters or first character
-        character_id = next((char_id for char_id, char in characters.items() if char.is_leader), list(characters.keys())[0])
-    print("Using haracter_id: ", character_id)
+        character = next((char for char in characters.items() if char.is_leader), list(characters.keys())[0])
+    print("Using haracter_id: ", character.id)
 
-    process_character(character_id)
+    process_character(character)
     
     
 

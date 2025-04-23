@@ -263,9 +263,11 @@ class TTSManager:
             text: Optional text that was spoken (for display/debugging)
         """
         try:
+            print(f"Creating audio data")
             # Encode audio to base64
             audio_base64 = self._encode_audio_to_base64(audio)
-            
+            print(f"Sending audio to UI")
+
             if audio_base64:
                 # Prepare data for socket
                 audio_data = {
