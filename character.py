@@ -15,6 +15,7 @@ from vector_compare import compare_with_base
 from inventory import InventoryManager
 
 language = os.getenv("LANGUAGE")
+TTS_CHAT = os.getenv("TTS_CHAT")
 
 remember_information_declaration = Tool(function_declarations=[FunctionDeclaration(
     name="remember_information",
@@ -368,7 +369,8 @@ class Character:
 
         if text:
             # Use the character's voice if set in a separate thread
-            threading.Thread(target=tts.speak_text, args=(text,), kwargs={"voice": self.voice_id}).start()
+            if TTS_CHAT:
+                threading.Thread(target=tts.speak_text, args=(text,), kwargs={"voice": self.voice_id}).start()
             self.do_tools(text)
 
         return result
