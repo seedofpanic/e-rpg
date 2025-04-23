@@ -5,9 +5,8 @@ load_dotenv()
 
 import os
 import time
-from flask import render_template, request, jsonify, url_for, send_from_directory
+from flask import request, jsonify, url_for, send_from_directory
 import google.generativeai as genai
-import speech_recognition as sr
 from base_lore import get_base_lore, set_base_lore
 from dialog_history import DialogueMessage, append_to_dialog_history, get_dialogue_history, set_dialog_history
 from game_state import game_state
@@ -60,7 +59,6 @@ def get_all_characters_data():
 def emit_characters_updated():
     """Emit characters_updated event to all clients"""
     characters_data = get_all_characters_data()
-    print(f"Emitting characters_updated event to all clients: {characters_data}")
     send_socket_message('characters_updated', {
         'characters': characters_data
     })
@@ -593,8 +591,6 @@ def get_all_personas_data():
 
 # Emit a personas_updated event to all clients
 def emit_personas_updated():
-    # print trace
-    print(traceback.format_stack())
     """Emit personas_updated event to all clients"""
     personas_data = get_all_personas_data()
     send_socket_message('personas_updated', {

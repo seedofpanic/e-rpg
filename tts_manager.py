@@ -11,6 +11,7 @@ import numpy as np
 from urllib.request import urlretrieve
 from pathlib import Path
 
+print(f"CUDA available: {torch.cuda.is_available()}")
 
 class TTSManager:
     def __init__(self, language_code=None):

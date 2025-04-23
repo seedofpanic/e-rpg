@@ -57,6 +57,21 @@ The application features a chat-based interface where each character, including 
 
 4. Edit the `.env` file and add your Google Gemini API key.
 
+### Installing PyTorch with CUDA Support
+To enable GPU acceleration for deep learning features, install PyTorch with CUDA support:
+
+```
+pip uninstall -y torch torchvision torchaudio
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+```
+
+Verify the installation:
+```
+python -c "import torch; print('CUDA available:', torch.cuda.is_available()); print('PyTorch version:', torch.__version__)"
+```
+
+This should output `CUDA available: True` if your GPU is properly detected.
+
 ### Running the Application
 
 #### Backend Server

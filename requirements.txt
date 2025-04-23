@@ -1,0 +1,12 @@
+flask
+python-dotenv
+sentence-transformers
+numpy
+google-generativeai
+torch
+pydantic
+aiohttp
+Pillow
+huggingface-hub
+google-genai
+sounddevice
