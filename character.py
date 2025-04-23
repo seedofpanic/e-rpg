@@ -1,4 +1,5 @@
 import random
+import threading
 from ai_utils import generate_response, run_tools
 from google.genai.types import FunctionDeclaration, Tool, Schema
 
@@ -8,6 +9,7 @@ from dialog_history import DialogueMessage, DialogueMessageType, append_to_dialo
 from app_socket import send_socket_message
 import os
 from logger_config import logger as char_logger, logger as memory_logger
+from tts_manager import tts
 from update_scene import get_current_scene
 from vector_compare import compare_with_base
 from inventory import InventoryManager
@@ -62,7 +64,7 @@ removeIntention_declaration = Tool(function_declarations=[FunctionDeclaration(
 class Character:
     def __init__(self, char_id, name, char_class="", race="", personality="", background="", motivation="", avatar=None, is_leader=False,
                  strength=10, dexterity=10, constitution=10, intelligence=10, wisdom=10, charisma=10,
-                 max_hp=10, current_hp=10, armor_class=10, proficiency_bonus=2, memory: list[str] = [], intentions: list[str] = [], inventory: list[dict] = [], gold=0, active=True):
+                 max_hp=10, current_hp=10, armor_class=10, proficiency_bonus=2, memory: list[str] = [], intentions: list[str] = [], inventory: list[dict] = [], gold=0, active=True, voice_id=None):
         self.active = active
         self.id = char_id
         self.name = name
@@ -81,6 +83,7 @@ class Character:
         self.intentions = set(intentions)
         self.inventory = inventory if inventory else InventoryManager.initialize_inventory()
         self.gold = gold
+        self.voice_id = voice_id
         
         # RPG Character Stats
         self.ability_scores = {
@@ -143,7 +146,8 @@ class Character:
             "active": self.active,
             "intentions": list(self.intentions),
             "inventory": self.inventory,
-            "gold": self.gold
+            "gold": self.gold,
+            "voice_id": self.voice_id
         }
     
     @classmethod
@@ -173,7 +177,8 @@ class Character:
             active=char_data.get("active", True),  # Default to True if not present
             intentions=set(char_data.get("intentions", [])),
             inventory=char_data.get("inventory", []),  # Get inventory or default to empty list
-            gold=char_data.get("gold", 0)  # Get gold or default to 0
+            gold=char_data.get("gold", 0),  # Get gold or default to 0
+            voice_id=char_data.get("voice_id")  # Get voice_id or default to None
         )
         char.skill_proficiencies = char_data["skill_proficiencies"]
         return char
@@ -358,6 +363,8 @@ class Character:
         result = generate_response(prompt, temperature=0.85)
 
         if result and "text" in result:
+            # Use the character's voice if set in a separate thread
+            threading.Thread(target=tts.speak_text, args=(result["text"],), kwargs={"voice": self.voice_id}).start()
             self.do_tools(result["text"])
 
         return result
@@ -458,6 +465,15 @@ class Character:
         """Get the character's gold amount"""
         return self.gold
 
+    def set_voice(self, voice_id):
+        """Set the TTS voice for this character"""
+        self.voice_id = voice_id
+        return self.voice_id
+        
+    def get_voice(self):
+        """Get the current voice ID for this character"""
+        return self.voice_id
+
 _characters = {
     
 }
@@ -517,7 +533,8 @@ def reset_to_default_characters():
             intelligence=10,
             wisdom=12,
             charisma=10,
-            gold=50
+            gold=50,
+            voice_id="en_2"
         ),
         "elara": Character(
             char_id="elara",
@@ -534,7 +551,8 @@ def reset_to_default_characters():
             intelligence=14,
             wisdom=12,
             charisma=10,
-            gold=30
+            gold=30,
+            voice_id="en_0"
         ),
         "thorne": Character(
             char_id="thorne",
@@ -551,7 +569,8 @@ def reset_to_default_characters():
             intelligence=14,
             wisdom=12,
             charisma=10,
-            gold=75
+            gold=75,
+            voice_id="en_46"
         )
     }
     

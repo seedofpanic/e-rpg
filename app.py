@@ -17,6 +17,7 @@ from update_scene import get_current_scene, set_current_scene
 from character import Character, get_character_by_id, get_characters, set_characters, set_character_active, update_character
 from gm_persona import get_personas, get_persona_by_id, create_persona, remove_persona, toggle_favorite, set_default_persona, get_default_persona, persona_manager
 from ai_utils import set_default_api_key, update_api_key, remove_api_key
+from tts_manager import tts
 
 # Helper function for Socket.IO responses to handle request/response pattern
 def send_socket_response(request_id, payload):
@@ -42,7 +43,8 @@ def format_character_for_socket(character):
         'avatar': character.avatar,
         'ability_scores': character.ability_scores,
         'inventory': character.inventory,
-        'gold': character.gold
+        'gold': character.gold,
+        'voice_id': character.voice_id
     }
 
 def get_all_characters_data():
@@ -110,6 +112,8 @@ def emit_game_data():
     
     # Restore message history from server
     restore_messages()
+
+    emit_tts_voices()
 
 # Socket.IO events for real-time chat
 @socketio.on('init')
@@ -486,7 +490,9 @@ def handle_update_characters(data):
             wisdom=char_data['ability_scores']['wisdom'],
             charisma=char_data['ability_scores']['charisma'],
             # Set active state from the character data, default to True if not provided
-            active=char_data.get('active', True)
+            active=char_data.get('active', True),
+            # Set voice_id from the character data
+            voice_id=char_data.get('voice_id')
         )
         
         # Set additional attributes that aren't in the constructor
@@ -594,6 +600,11 @@ def emit_personas_updated():
     send_socket_message('personas_updated', {
         'personas': personas_data,
         'default_persona': get_default_persona()
+    })
+
+def emit_tts_voices():
+    send_socket_message('tts_voices', {
+        'voices': tts.get_available_voices()
     })
 
 # New routes for GM Personas
@@ -894,6 +905,14 @@ def handle_get_personas(data=None):
         send_socket_response(request_id, {'personas': personas})
     else:
         send_socket_message('personas', {'personas': personas})
+
+@socketio.on('tts_voice_test')
+def handle_tts_voice_test(data):
+    """Handle request to test TTS voice"""
+    if not data:
+        return
+    print(f"Testing TTS voice {data.get('voice_id')}")
+    tts.speak_text("This is a test of the TTS voice" if os.environ.get("LANGUAGE", "en") == "en" else "Это тестовая проверка голоса TTS", voice=data.get('voice_id'))
 
 @socketio.on('create_persona')
 def handle_create_persona(data):

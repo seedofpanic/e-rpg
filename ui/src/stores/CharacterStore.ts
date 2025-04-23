@@ -2,6 +2,14 @@ import { makeAutoObservable, runInAction } from 'mobx';
 import socketService from '../services/api';
 import { InventoryItem } from './InventoryStore';
 
+interface TTSVoice {
+  id: string;
+  name: string;
+  languages: string[];
+  gender: string;
+  age: string;
+}
+
 export interface Character {
   id: string;
   name: string;
@@ -28,6 +36,7 @@ export interface Character {
   skill_proficiencies: Record<string, boolean>;
   inventory: Array<InventoryItem>;
   gold: number;
+  voice_id: string;
 }
 
 class CharacterStore {
@@ -35,6 +44,7 @@ class CharacterStore {
   characters: Record<string, Character> = {};
   isLoading: boolean = true;
   editingCharacter: Character | null = null;
+  ttsVoices: any[] = [];
   
   constructor() {
     makeAutoObservable(this);
@@ -49,6 +59,21 @@ class CharacterStore {
       console.log('characters_updated', data);
       this.setCharacters(data.characters);
     });
+
+    socketService.on('tts_voices', (data: {voices: TTSVoice[]}) => {
+      console.log('tts_voices', data);
+      this.setTTSVoices(data.voices);
+    });
+  }
+
+  tryTTSVoice(voice: TTSVoice) {
+    socketService.sendEvent('tts_voice_test', {
+      voice_id: voice.id
+    });
+  }
+
+  setTTSVoices(voices: TTSVoice[]) {
+    this.ttsVoices = voices;
   }
 
   setCharacters(data: Record<string, Character>) {

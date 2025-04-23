@@ -31,6 +31,7 @@ const CharacterFormModal: React.FC<CharacterFormModalProps> = observer(({ onClos
     current_hp: editingCharacter?.current_hp || 10,
     armor_class: editingCharacter?.armor_class || 10,
     proficiency_bonus: editingCharacter?.proficiency_bonus || 2,
+    voice_id: editingCharacter?.voice_id || '',
   });
   
   const [skillProficiencies, setSkillProficiencies] = useState<Record<string, boolean>>(
@@ -49,6 +50,13 @@ const CharacterFormModal: React.FC<CharacterFormModalProps> = observer(({ onClos
   
   const handleSkillProficiencyChange = (skillName: string, checked: boolean) => {
     setSkillProficiencies(prev => ({ ...prev, [skillName]: checked }));
+  };
+  
+  const handleTryVoice = () => {
+    const selectedVoice = characterStore.ttsVoices.find(voice => voice.id === formData.voice_id);
+    if (selectedVoice) {
+      characterStore.tryTTSVoice(selectedVoice);
+    }
   };
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -303,6 +311,40 @@ const CharacterFormModal: React.FC<CharacterFormModalProps> = observer(({ onClos
                     value={formData.proficiency_bonus} 
                     onChange={handleChange}
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Voice Selection */}
+            <div className="mb-3">
+              <h6>Character Voice</h6>
+              <div className="row align-items-end">
+                <div className="col-md-8">
+                  <label htmlFor="voiceSelection" className="form-label">Voice</label>
+                  <select
+                    className="form-select"
+                    id="voiceSelection"
+                    name="voice_id"
+                    value={formData.voice_id}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select a voice</option>
+                    {characterStore.ttsVoices.map(voice => (
+                      <option key={voice.id} value={voice.id}>
+                        {voice.name} ({voice.gender} - {voice.age})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-md-4">
+                  <button 
+                    type="button" 
+                    className="btn btn-outline-secondary" 
+                    onClick={handleTryVoice}
+                    disabled={!formData.voice_id}
+                  >
+                    <i className="bi bi-volume-up me-1"></i> Try Voice
+                  </button>
                 </div>
               </div>
             </div>
