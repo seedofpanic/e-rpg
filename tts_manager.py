@@ -445,15 +445,15 @@ class TTSManager:
             parts = speaker.split('_')
             language = parts[0] if len(parts) > 0 else "unknown"
 
-            if language == self._current_language:
-                voice_info = {
-                    'id': speaker,
-                    'name': speaker,
-                    'languages': [language],
-                    'gender': 'unknown',  # Silero doesn't provide gender info
-                    'age': 'unknown'      # Silero doesn't provide age info
-                }
-                voice_list.append(voice_info)
+            #if language == self._current_language:
+            voice_info = {
+                'id': speaker,
+                'name': speaker,
+                'languages': [language],
+                'gender': 'unknown',  # Silero doesn't provide gender info
+                'age': 'unknown'      # Silero doesn't provide age info
+            }
+            voice_list.append(voice_info)
 
         return voice_list
 
