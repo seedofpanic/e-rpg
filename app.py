@@ -1129,7 +1129,7 @@ def handle_voice_transcription(data):
         try:
             response = generate_response(
                 [
-                    "Transcribe the following audio to text. Return only the transcribed text without any additional explanation. The language is Russian.",
+                    f"Transcribe the following audio to text. Return only the transcribed text without any additional explanation. The language is {current_language}.",
                     genai.types.Part.from_bytes(
                         data=audio_bytes,
                         mime_type=mime_type
