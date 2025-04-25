@@ -1,5 +1,5 @@
 # E-RPG
-E-RPG is an innovative application that enables users to serve as Game Masters in Role Playing campaigns where AI agents act as players. Each AI agent is equipped with unique prompts that define their character's personality, motivations, and behavior patterns.
+E-RPG is an innovative application that enables users to play Game Masters in Role Playing campaigns where AI agents act as players. Each AI agent is equipped with unique prompts that define their character's personality, motivations, and behavior patterns.
 
 ## Interface
 The application features a chat-based interface where each character, including the AI-controlled ones, is represented by a distinctive avatar. This design creates an immersive tabletop RPG experience in a digital environment. The system supports voice input via microphone, allowing for natural language interaction between the Game Master and the AI players.
@@ -10,7 +10,6 @@ The application features a chat-based interface where each character, including 
 - **Flask & Socket.IO**: Creates a real-time web application for seamless interaction
 - **Web interface**: Delivers an accessible front-end experience through browser-based interaction
 - **Sentence Transformers**: Used for semantic text processing and understanding
-- **FAISS**: Efficient similarity search for character and world knowledge
 - **React**: Frontend UI built with React and TypeScript
 
 ## Key Features
@@ -116,18 +115,3 @@ To build the UI for production deployment:
    ```
 
 3. The built files will be available in the `ui/dist` directory and can be served by the Flask application
-
-## Customizing Characters
-Characters can be created and customized directly through the web interface. Each character can have:
-- Unique personality traits and background
-- Character class and race
-- Custom avatar
-- Inventory items and gold
-- Ability scores
-
-## Game Master Personas
-You can create and manage different Game Master personas to change the tone and style of your game sessions. The application allows you to:
-- Create multiple GM personas
-- Set favorite personas
-- Define default personas
-- Upload custom avatars for each persona
