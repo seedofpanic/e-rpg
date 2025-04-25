@@ -97,11 +97,11 @@ Roll: 1d20 ${formatModifier(abilityModifier)} (${abilityKey}) ${isProficient ? `
     <div className="skill-roll-container">
       {ChatStore.skillRollModal.open && (
         <>
-          <div className="modal-backdrop" onClick={ChatStore.closeSkillRoll}></div>
+          <div className="modal-backdrop" onClick={() => ChatStore.closeSkillRoll()}></div>
           <div className="skill-roll-menu">
             <div className="skill-roll-header">
               <h3>Skill Rolls for {character.name}</h3>
-              <button className="close-modal-button" onClick={ChatStore.closeSkillRoll}>×</button>
+              <button className="close-modal-button" onClick={() => ChatStore.closeSkillRoll()}>×</button>
             </div>
             
             <div className="skill-categories">
