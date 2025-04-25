@@ -72,7 +72,7 @@ def analyzer_process(prompt: str):
     print("character_id: ", character_id)
     if not character:
         # find leader in characters or first character
-        character = next((char for char in characters.items() if char.is_leader), list(characters.keys())[0])
+        character = next((char for char in characters.items() if char[1].is_leader), list(characters.keys())[0])
     print("Using haracter_id: ", character.id)
 
     process_character(character)
