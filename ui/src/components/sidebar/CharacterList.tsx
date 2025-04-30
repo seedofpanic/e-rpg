@@ -8,6 +8,8 @@ interface Character {
   avatar: string;
   active: boolean;
   is_leader: boolean;
+  current_hp: number;
+  max_hp: number;
 }
 
 interface CharactersMap {
@@ -59,6 +61,16 @@ const CharacterList: React.FC<CharacterListProps> = ({
                 <small className={`${styles.status} ${character.active ? styles.statusActive : styles.statusInactive}`}>
                   {character.active ? 'Active' : 'Inactive'}
                 </small>
+                <div className={styles.healthBarContainer} title={`HP: ${character.current_hp}/${character.max_hp}`}>
+                  <div 
+                    className={styles.healthBar} 
+                    style={{ 
+                      width: `${(character.current_hp / character.max_hp) * 100}%`,
+                      backgroundColor: getHealthColor(character.current_hp, character.max_hp)
+                    }}
+                  ></div>
+                  <span className={styles.healthText}>{character.current_hp}/{character.max_hp}</span>
+                </div>
               </div>
               {character.active && (
                 <div 
@@ -75,6 +87,14 @@ const CharacterList: React.FC<CharacterListProps> = ({
       )}
     </div>
   );
+};
+
+// Helper function to get health bar color based on percentage
+const getHealthColor = (current: number, max: number): string => {
+  const healthPercent = (current / max) * 100;
+  if (healthPercent > 60) return '#4caf50'; // Green
+  if (healthPercent > 30) return '#ffc107'; // Yellow
+  return '#f44336'; // Red
 };
 
 export default CharacterList; 

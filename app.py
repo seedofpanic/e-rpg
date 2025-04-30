@@ -48,7 +48,9 @@ def format_character_for_socket(character):
         'ability_scores': character.ability_scores,
         'inventory': character.inventory,
         'gold': character.gold,
-        'voice_id': character.voice_id
+        'voice_id': character.voice_id,
+        'current_hp': character.current_hp,
+        'max_hp': character.max_hp
     }
 
 def get_all_characters_data():

@@ -952,4 +952,31 @@ html, body {
 
 .iconButton:hover {
   color: #fff;
+}
+
+/* Add these styles for the health bar */
+.healthBarContainer {
+  width: 100%;
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  margin-top: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.healthBar {
+  height: 100%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.healthText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.7rem;
+  color: white;
+  text-shadow: 0px 0px 2px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
 } 

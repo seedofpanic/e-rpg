@@ -480,6 +480,19 @@ class Character:
         """Get the current voice ID for this character"""
         return self.voice_id
 
+    def set_current_hp(self, hp):
+        """Set current HP to a specific value, capped to max_hp"""
+        self.current_hp = min(hp, self.max_hp)
+        return self.current_hp
+
+    def set_max_hp(self, hp):
+        """Set max HP and adjust current HP if needed"""
+        self.max_hp = max(1, hp)  # Ensure max_hp is at least 1
+        # If current_hp is greater than new max_hp, reduce it
+        if self.current_hp > self.max_hp:
+            self.current_hp = self.max_hp
+        return self.max_hp
+
 _characters = {
     
 }
