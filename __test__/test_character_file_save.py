@@ -44,8 +44,8 @@ def test_save_load_characters_to_file():
     # Set test file path
     game_state.set_save_file_path(test_file)
     
-    # Save to file
-    save_success = game_state.save_game(test_file)
+    # Save to file using the path we already set
+    save_success = game_state.save_game()
     print(f"Saved game with characters to file: {save_success}")
     
     # Remove character from memory
@@ -56,8 +56,8 @@ def test_save_load_characters_to_file():
     # Verify character is gone
     assert get_character_by_id("test_char_1") is None
     
-    # Load from file
-    load_success = game_state.load_game(test_file)
+    # Load from file using the already set path
+    load_success = game_state.load_game()
     print(f"Loaded game from file: {load_success}")
     
     # Verify character was loaded
@@ -77,8 +77,6 @@ def test_save_load_characters_to_file():
     if os.path.exists(test_save_path):
         os.remove(test_save_path)
         print(f"Removed test file: {test_save_path}")
-    
-    return True
 
 if __name__ == "__main__":
     test_save_load_characters_to_file() 
