@@ -22,6 +22,7 @@ interface CharacterListProps {
   onAvatarClick: (characterId: string) => void;
   onToggleActive: (characterId: string) => void;
   onOpenSkillRoll: (characterId: string) => void;
+  onUpdateHealth?: (characterId: string, newHp: number) => void;
 }
 
 const CharacterList: React.FC<CharacterListProps> = ({
@@ -29,7 +30,8 @@ const CharacterList: React.FC<CharacterListProps> = ({
   charactersIds,
   onAvatarClick,
   onToggleActive,
-  onOpenSkillRoll
+  onOpenSkillRoll,
+  onUpdateHealth
 }) => {
   return (
     <div className="characters-list mt-4">
@@ -71,6 +73,24 @@ const CharacterList: React.FC<CharacterListProps> = ({
                   ></div>
                   <span className={styles.healthText}>{character.current_hp}/{character.max_hp}</span>
                 </div>
+                {onUpdateHealth && (
+                  <div className={styles.healthControls} onClick={(e) => e.stopPropagation()}>
+                    <button 
+                      className={styles.healthButton} 
+                      onClick={() => onUpdateHealth(character.id, Math.max(0, character.current_hp - 1))}
+                      title="Decrease HP"
+                    >
+                      -
+                    </button>
+                    <button 
+                      className={styles.healthButton} 
+                      onClick={() => onUpdateHealth(character.id, Math.min(character.max_hp, character.current_hp + 1))}
+                      title="Increase HP"
+                    >
+                      +
+                    </button>
+                  </div>
+                )}
               </div>
               {character.active && (
                 <div 

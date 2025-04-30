@@ -100,6 +100,7 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
         onAvatarClick={handleCharacterAvatarClick}
         onToggleActive={(id: string) => characterStore.toggleCharacterActive(id)}
         onOpenSkillRoll={(id: string) => chatStore.openSkillRoll(id)}
+        onUpdateHealth={(id: string, newHp: number) => characterStore.setHealth(id, newHp)}
       />
       
       {/* Hidden file inputs */}

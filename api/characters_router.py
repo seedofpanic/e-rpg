@@ -329,56 +329,19 @@ def register_character_socket_handlers(socketio):
             send_socket_response(request_id, response)
             return
         
-        # Create new characters dictionary
+        # Get current characters dictionary
         characters = get_characters()
         
         for char_id, char_data in new_characters.items():
             # Check if character already exists
             existing_character = characters.get(char_id)
             
-            # Create or update character
-            updated_character = Character(
-                char_id=char_id,
-                name=char_data['name'],
-                char_class=char_data['class'],
-                race=char_data['race'],
-                personality=char_data['personality'],
-                background=char_data['background'],
-                motivation=char_data['motivation'],
-                is_leader=char_data['is_leader'],
-                # Use existing avatar if character exists, otherwise default
-                avatar=existing_character.avatar if existing_character else "",
-                strength=char_data['ability_scores']['strength'],
-                dexterity=char_data['ability_scores']['dexterity'],
-                constitution=char_data['ability_scores']['constitution'],
-                intelligence=char_data['ability_scores']['intelligence'],
-                wisdom=char_data['ability_scores']['wisdom'],
-                charisma=char_data['ability_scores']['charisma'],
-                # Set active state from the character data, default to True if not provided
-                active=char_data.get('active', True),
-                # Set voice_id from the character data
-                voice_id=char_data.get('voice_id')
-            )
-            
-            # Set additional attributes that aren't in the constructor
-            if 'skill_proficiencies' in char_data:
-                updated_character.skill_proficiencies = char_data['skill_proficiencies']
-            
-            # Set max_hp and current_hp if provided
-            if 'max_hp' in char_data:
-                updated_character.max_hp = char_data['max_hp']
-            if 'current_hp' in char_data:
-                updated_character.current_hp = char_data['current_hp']
-            
-            # Set armor_class if provided
-            if 'armor_class' in char_data:
-                updated_character.armor_class = char_data['armor_class']
-            
-            # Set proficiency_bonus if provided
-            if 'proficiency_bonus' in char_data:
-                updated_character.proficiency_bonus = char_data['proficiency_bonus']
-            
-            update_character(updated_character)
+            if existing_character:
+                # Update existing character
+                _update_existing_character(existing_character, char_data)
+            else:
+                # Create new character
+                _create_new_character(char_id, char_data)
         
         # Emit characters_updated event to all clients
         emit_characters_updated()
@@ -389,6 +352,90 @@ def register_character_socket_handlers(socketio):
         }
         
         send_socket_response(request_id, response)
+
+    def _update_existing_character(character, char_data):
+        """Update an existing character with new data"""
+        # Update basic attributes
+        simple_fields = [
+            ('name', 'name'), 
+            ('class', 'char_class'),
+            ('race', 'race'),
+            ('personality', 'personality'),
+            ('background', 'background'),
+            ('motivation', 'motivation'),
+            ('is_leader', 'is_leader'),
+            ('active', 'active'),
+            ('voice_id', 'voice_id'),
+            ('gold', 'gold'),
+            ('armor_class', 'armor_class'),
+            ('proficiency_bonus', 'proficiency_bonus'),
+            ('inventory', 'inventory')
+        ]
+        
+        for data_field, char_field in simple_fields:
+            if data_field in char_data:
+                setattr(character, char_field, char_data[data_field])
+        
+        # Update ability scores if provided
+        if 'ability_scores' in char_data:
+            ability_scores = char_data['ability_scores']
+            for score in ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']:
+                if score in ability_scores:
+                    character.ability_scores[score] = ability_scores[score]
+        
+        # Update skill proficiencies if provided
+        if 'skill_proficiencies' in char_data:
+            character.skill_proficiencies = char_data['skill_proficiencies']
+        
+        # Update hp values using class methods to ensure proper constraints
+        if 'max_hp' in char_data:
+            character.set_max_hp(char_data['max_hp'])
+        if 'current_hp' in char_data:
+            character.set_current_hp(char_data['current_hp'])
+        
+        # Update the character
+        update_character(character)
+
+    def _create_new_character(char_id, char_data):
+        """Create a new character from data"""
+        ability_scores = char_data.get('ability_scores', {})
+        new_character = Character(
+            char_id=char_id,
+            name=char_data.get('name', ''),
+            char_class=char_data.get('class', ''),
+            race=char_data.get('race', ''),
+            personality=char_data.get('personality', ''),
+            background=char_data.get('background', ''),
+            motivation=char_data.get('motivation', ''),
+            is_leader=char_data.get('is_leader', False),
+            avatar=char_data.get('avatar', ''),
+            strength=ability_scores.get('strength', 10),
+            dexterity=ability_scores.get('dexterity', 10),
+            constitution=ability_scores.get('constitution', 10),
+            intelligence=ability_scores.get('intelligence', 10),
+            wisdom=ability_scores.get('wisdom', 10),
+            charisma=ability_scores.get('charisma', 10),
+            active=char_data.get('active', True),
+            voice_id=char_data.get('voice_id')
+        )
+        
+        # Set additional attributes
+        if 'skill_proficiencies' in char_data:
+            new_character.skill_proficiencies = char_data['skill_proficiencies']
+        if 'max_hp' in char_data:
+            new_character.set_max_hp(char_data['max_hp'])
+        if 'current_hp' in char_data:
+            new_character.set_current_hp(char_data['current_hp'])
+        if 'armor_class' in char_data:
+            new_character.armor_class = char_data['armor_class']
+        if 'proficiency_bonus' in char_data:
+            new_character.proficiency_bonus = char_data['proficiency_bonus']
+        if 'inventory' in char_data:
+            new_character.inventory = char_data['inventory']
+        if 'gold' in char_data:
+            new_character.gold = char_data['gold']
+        
+        update_character(new_character)
 
     @socketio.on('delete_character')
     def handle_delete_character(data):

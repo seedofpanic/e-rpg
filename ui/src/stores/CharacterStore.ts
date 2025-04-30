@@ -127,6 +127,25 @@ class CharacterStore {
     socketService.sendEvent('delete_character', { character_id: characterId });
   }
 
+  // Update character's current health
+  setHealth(characterId: string, currentHp: number) {
+    const character = this.getCharacterById(characterId);
+    if (!character) return;
+    
+    // Create update with just the necessary fields
+    const characterUpdate = {
+      id: characterId,
+      current_hp: currentHp
+    };
+    
+    // Use the existing update_characters event
+    socketService.sendEvent('update_characters', { 
+      characters: {
+        [characterId]: characterUpdate
+      }
+    });
+  }
+
   // Set, add, or remove gold for a character
   setGold(characterId: string, amount: number, action: 'add' | 'remove' | 'set' = 'set') {
     const character = this.getCharacterById(characterId);

@@ -16,7 +16,7 @@ from character import Character, get_character_by_id, get_characters, set_charac
 from gm_persona import get_personas, get_persona_by_id, create_persona, remove_persona, toggle_favorite, set_default_persona, get_default_persona, persona_manager
 from ai_utils import set_default_api_key, update_api_key, remove_api_key, get_current_api_key, generate_response
 from tts_manager import tts
-from api.characters import emit_characters_updated, format_character_for_socket, get_all_characters_data, register_character_rest_api, register_character_socket_handlers, send_socket_response
+from api.characters_router import emit_characters_updated, register_character_rest_api, register_character_socket_handlers, send_socket_response
 import base64
 from google import genai
 
