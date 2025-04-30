@@ -63,34 +63,36 @@ const CharacterList: React.FC<CharacterListProps> = ({
                 <small className={`${styles.status} ${character.active ? styles.statusActive : styles.statusInactive}`}>
                   {character.active ? 'Active' : 'Inactive'}
                 </small>
-                <div className={styles.healthBarContainer} title={`HP: ${character.current_hp}/${character.max_hp}`}>
-                  <div 
-                    className={styles.healthBar} 
-                    style={{ 
-                      width: `${(character.current_hp / character.max_hp) * 100}%`,
-                      backgroundColor: getHealthColor(character.current_hp, character.max_hp)
-                    }}
-                  ></div>
-                  <span className={styles.healthText}>{character.current_hp}/{character.max_hp}</span>
-                </div>
-                {onUpdateHealth && (
-                  <div className={styles.healthControls} onClick={(e) => e.stopPropagation()}>
-                    <button 
-                      className={styles.healthButton} 
-                      onClick={() => onUpdateHealth(character.id, Math.max(0, character.current_hp - 1))}
-                      title="Decrease HP"
-                    >
-                      -
-                    </button>
-                    <button 
-                      className={styles.healthButton} 
-                      onClick={() => onUpdateHealth(character.id, Math.min(character.max_hp, character.current_hp + 1))}
-                      title="Increase HP"
-                    >
-                      +
-                    </button>
+                <div className={styles.healthBarContainer} title={`HP: ${character.current_hp}/${character.max_hp}`} onClick={(e) => e.stopPropagation()}>
+                  <div className={styles.healthBarBackground}>
+                    <div 
+                      className={styles.healthBar} 
+                      style={{ 
+                        width: `${(character.current_hp / character.max_hp) * 100}%`,
+                        backgroundColor: getHealthColor(character.current_hp, character.max_hp)
+                      }}
+                    ></div>
                   </div>
-                )}
+                  <span className={styles.healthText}>{character.current_hp}/{character.max_hp}</span>
+                  {onUpdateHealth && (
+                    <>
+                      <button 
+                        className={`${styles.healthButton} ${styles.healthButtonLeft}`}
+                        onClick={() => onUpdateHealth(character.id, Math.max(0, character.current_hp - 1))}
+                        title="Decrease HP"
+                      >
+                        -
+                      </button>
+                      <button 
+                        className={`${styles.healthButton} ${styles.healthButtonRight}`}
+                        onClick={() => onUpdateHealth(character.id, Math.min(character.max_hp, character.current_hp + 1))}
+                        title="Increase HP"
+                      >
+                        +
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
               {character.active && (
                 <div 

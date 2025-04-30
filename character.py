@@ -351,6 +351,8 @@ class Character:
             f"{delimiter.join(short_memory) if short_memory else '- No memories about topics in messages'}\n\n"
             "## Your were going to do:\n"
             f"{delimiter.join(self.intentions)}\n\n"
+            "## Your HP:\n"
+            f"{self.current_hp}/{self.max_hp}\n\n"
             "## Your inventory:\n"
             f"{inventory_text}\n\n"
             "## Your gold:\n"

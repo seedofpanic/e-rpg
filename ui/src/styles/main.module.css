@@ -957,16 +957,29 @@ html, body {
 /* Add these styles for the health bar */
 .healthBarContainer {
   width: 100%;
-  height: 8px;
-  background-color: #e0e0e0;
+  height: 20px;
+  background-color: transparent;
   border-radius: 4px;
   margin-top: 4px;
   position: relative;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+}
+
+.healthBarBackground {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  height: 8px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
   overflow: hidden;
 }
 
 .healthBar {
   height: 100%;
+  border-radius: 4px;
   transition: width 0.3s ease, background-color 0.3s ease;
 }
 
@@ -975,10 +988,12 @@ html, body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: white;
-  text-shadow: 0px 0px 2px rgba(0, 0, 0, 0.7);
+  text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.9);
   white-space: nowrap;
+  z-index: 2;
+  font-weight: 600;
 }
 
 /* I'll add styles for the health buttons. Since I don't have the full file, 
@@ -991,21 +1006,31 @@ I'll add these where they make the most sense, likely after health bar styles */
 }
 
 .healthButton {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(60, 60, 60, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
+  background-color: rgba(40, 40, 40, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
   color: white;
   cursor: pointer;
   font-weight: bold;
   padding: 0;
   line-height: 1;
+  z-index: 3;
+  position: absolute;
+}
+
+.healthButtonLeft {
+  left: 2px;
+}
+
+.healthButtonRight {
+  right: 2px;
 }
 
 .healthButton:hover {
-  background-color: rgba(80, 80, 80, 0.8);
+  background-color: rgba(60, 60, 60, 0.9);
 } 
