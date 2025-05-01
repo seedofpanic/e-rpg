@@ -7,9 +7,11 @@
  * @param {import('@playwright/test').Page} page 
  */
 async function waitForAppLoad(page) {
-  // Wait for some indicator that the app is fully loaded
-  // Using more general selectors that are likely to exist, including the container-fluid class
-  await page.waitForSelector('.container-fluid, .container, .content, #app, #root, main', { state: 'visible' });
+  // Use a very basic selector guaranteed to be present in the React app
+  await page.waitForSelector('#root', { state: 'visible' });
+  
+  // Wait a moment for the app to initialize
+  await page.waitForTimeout(2000);
 }
 
 /**

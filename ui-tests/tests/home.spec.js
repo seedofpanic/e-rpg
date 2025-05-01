@@ -4,8 +4,8 @@ test.describe('Homepage tests', () => {
   test('should load the homepage', async ({ page }) => {
     await page.goto('/');
     
-    // Verify the page has loaded
-    await expect(page).toHaveTitle(/E-RPG - AI Role Playing/);
+    // Verify the page has loaded with the correct title
+    await expect(page).toHaveTitle(/E-RPG - Enhanced RPG Campaign Manager/);
   });
   
   test('should have proper UI elements', async ({ page }) => {

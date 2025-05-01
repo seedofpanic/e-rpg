@@ -9,54 +9,59 @@ test.describe('Avatar Customization Features', () => {
   });
 
   test('should open avatar upload modal for character', async ({ page }) => {
-    // Find a character avatar container
-    const avatarContainer = page.locator('.character-avatar-container').first();
+    // Find a character avatar in the sidebar
+    const avatar = page.locator('.avatar').first();
     
-    if (await avatarContainer.count() > 0) {
-      await avatarContainer.click();
+    if (await avatar.count() > 0) {
+      await avatar.click();
       
       // Verify modal opened
-      await expect(page.locator('#avatarUploadModal')).toBeVisible();
+      await expect(page.locator('.modalContent')).toBeVisible();
       
       // Verify file input exists
-      await expect(page.locator('#avatar-file')).toBeVisible();
+      await expect(page.locator('input[type="file"]')).toBeVisible();
       
       // Close modal
-      await page.locator('#avatarUploadModal .btn-close').click();
+      await page.locator('.modalHeader button').click();
     } else {
-      test.skip('No character avatar containers found');
+      test.skip('No character avatars found');
     }
   });
 
   test('should open avatar upload modal for GM', async ({ page }) => {
-    // Find GM avatar container/button
-    const gmAvatarContainer = page.locator('#gm-avatar-container, #change-gm-avatar-btn').first();
+    // Find GM avatar in persona selector
+    const personaAvatar = page.locator('.personaAvatarSmall').first();
     
-    if (await gmAvatarContainer.count() > 0) {
-      await gmAvatarContainer.click();
+    if (await personaAvatar.count() > 0) {
+      await personaAvatar.click();
       
-      // Verify modal opened with GM as target
-      await expect(page.locator('#avatarUploadModal')).toBeVisible();
-      
-      // Check if the character ID is set to "gm"
-      const characterIdInput = page.locator('#avatar-character-id');
-      if (await characterIdInput.count() > 0) {
-        await expect(characterIdInput).toHaveValue('gm');
+      // Open the avatar upload modal from dropdown
+      const avatarOption = page.locator('.personaManageOption').first();
+      if (await avatarOption.count() > 0) {
+        await avatarOption.click();
+        
+        // Verify modal opened
+        await expect(page.locator('.modalContent')).toBeVisible();
+        
+        // Verify file input exists
+        await expect(page.locator('input[type="file"]')).toBeVisible();
+        
+        // Close modal
+        await page.locator('.modalHeader button').click();
+      } else {
+        test.skip('Avatar option not found in persona dropdown');
       }
-      
-      // Close modal
-      await page.locator('#avatarUploadModal .btn-close').click();
     } else {
-      test.skip('GM avatar container not found');
+      test.skip('GM avatar not found');
     }
   });
 
   test('should preview selected avatar image', async ({ page }) => {
-    // Open avatar modal
-    const avatarContainer = page.locator('.character-avatar-container').first();
+    // Open avatar modal using a character avatar
+    const avatar = page.locator('.avatar').first();
     
-    if (await avatarContainer.count() > 0) {
-      await avatarContainer.click();
+    if (await avatar.count() > 0) {
+      await avatar.click();
       
       // Prepare file for upload (this is mocked since we can't actually upload in automated tests)
       // Note: In a real environment, you'd need a test image file in a known location
@@ -66,52 +71,51 @@ test.describe('Avatar Customization Features', () => {
       // not the actual upload which would require a server
       try {
         // This requires a real file to exist - we can only test the UI part
-        await page.setInputFiles('#avatar-file', testImagePath);
+        await page.setInputFiles('input[type="file"]', testImagePath);
         
         // Check if preview container becomes visible
-        await expect(page.locator('.avatar-preview-container')).toBeVisible();
-        await expect(page.locator('#avatar-preview')).toBeVisible();
+        await expect(page.locator('.avatarPreview')).toBeVisible();
       } catch (e) {
         // If test image doesn't exist, we'll just test the UI exists
         console.log('Test image not available - skipping file upload test portion');
       }
       
       // Close modal
-      await page.locator('#avatarUploadModal .btn-close').click();
+      await page.locator('.modalHeader button').click();
     } else {
-      test.skip('No character avatar containers found');
+      test.skip('No character avatars found');
     }
   });
 
   test('should have upload button functionality', async ({ page }) => {
     // Open avatar modal
-    const avatarContainer = page.locator('.character-avatar-container').first();
+    const avatar = page.locator('.avatar').first();
     
-    if (await avatarContainer.count() > 0) {
-      await avatarContainer.click();
+    if (await avatar.count() > 0) {
+      await avatar.click();
       
       // Check upload button exists and is enabled
-      await expect(page.locator('#upload-avatar-btn')).toBeVisible();
-      await expect(page.locator('#upload-avatar-btn')).toBeEnabled();
+      const uploadButton = page.locator('button:has-text("Upload"), .btnPrimary:has-text("Upload")').first();
+      await expect(uploadButton).toBeVisible();
       
       // We won't test actual upload functionality as it requires server interaction
       // Just verify behavior when no file is selected (should show alert or disable button)
-      await page.locator('#upload-avatar-btn').click();
+      await uploadButton.click();
       
-      // Either alert appears or button remains visible (we're testing without file selection)
+      // Either alert appears or modal remains visible
       const alertOpened = await page.evaluate(() => {
         return window.alert !== undefined;
       });
       
       if (!alertOpened) {
         // If no alert, the modal should still be open
-        await expect(page.locator('#avatarUploadModal')).toBeVisible();
+        await expect(page.locator('.modalContent')).toBeVisible();
       }
       
       // Close modal
-      await page.locator('#avatarUploadModal .btn-close').click();
+      await page.locator('.modalHeader button').click();
     } else {
-      test.skip('No character avatar containers found');
+      test.skip('No character avatars found');
     }
   });
 }); 

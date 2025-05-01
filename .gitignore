@@ -76,3 +76,5 @@ node_modules/
 ui/public/images/avatars/*
 static/images/avatars/*
 models/*
+ui-tests/playwright-report/*
+ui-tests/test-results/*

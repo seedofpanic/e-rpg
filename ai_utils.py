@@ -1,3 +1,4 @@
+import os
 from socket import SocketIO
 import time
 from collections import deque
@@ -18,6 +19,7 @@ api_keys: dict[str, str] = {}
 
 # Default API key from environment
 DEFAULT_GEMINI_API_KEY = None
+PREVENT_LLM_CALLS = os.getenv("PREVENT_LLM_CALLS", "")
 
 def set_default_api_key(api_key):
     global DEFAULT_GEMINI_API_KEY
@@ -70,6 +72,10 @@ def generate_response(prompt, temperature=0.5, tools=None, api_key=None, defer_t
     Raises:
         RateLimitError: If rate limit is reached and wait=False
     """
+
+    if PREVENT_LLM_CALLS:
+        raise Exception("LLM calls are prevented")
+
     # If no API key is provided, get it from the current session
     if api_key is None:
         api_key = get_current_api_key()

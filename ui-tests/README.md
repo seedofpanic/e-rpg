@@ -1,6 +1,111 @@
 # E-RPG UI Tests
 
-This directory contains UI automated tests for the E-RPG application using [Playwright](https://playwright.dev/).
+This directory contains UI tests for the E-RPG application using Playwright.
+
+## Running the Tests
+
+To run the tests, use the following commands:
+
+```bash
+# Install dependencies
+npm install
+
+# Run all tests
+npm test
+
+# Run tests with UI
+npm run test:ui
+
+# Run tests with browser visible
+npm run test:headed
+
+# View the latest test report
+npm run report
+```
+
+## Test Structure
+
+The UI tests are organized by feature area:
+
+- `chat-interface.spec.js` - Tests for the chat functionality
+- `character.spec.js` - Tests for character management
+- `game-controls.spec.js` - Tests for game control buttons and actions
+- `scene-management.spec.js` - Tests for scene viewing and editing
+- `home.spec.js` - Tests for the homepage features
+
+## Testing Approach
+
+The tests follow these key principles:
+
+1. **Test via the UI only** - Tests interact with visible UI elements as a user would, rather than directly accessing or mocking application stores.
+
+2. **Resilient selectors** - Multiple selector strategies are used to find elements even when UI structure changes.
+
+3. **Graceful degradation** - Tests skip gracefully when certain features aren't available, avoiding false failures.
+
+4. **Minimal dependencies** - Tests don't depend on specific implementation details of components.
+
+## Helper Functions
+
+Test helpers in `tests/utils/test-helpers.js` provide common utilities for:
+
+- Waiting for the application to load
+- Finding UI elements with flexible selectors
+- Handling common test interactions
+
+## Common Testing Patterns
+
+The tests use several patterns to ensure reliability:
+
+### Multiple Selector Strategies
+
+Using multiple selectors to find elements based on:
+- ID (`#element-id`)
+- Class (`.element-class`)
+- Element type with text content (`button:has-text("Save")`)
+- Attributes (`[data-action="save"]`)
+
+Example:
+```js
+// Try multiple selectors to find an element
+const element = page.locator('#specific-id, .element-class, [aria-label="Element"]');
+```
+
+### Skip Tests When Features Aren't Available
+
+Tests check if UI elements exist before trying to interact with them:
+
+```js
+// Skip test if element not found
+if (await element.count() === 0) {
+  test.skip('Element not found');
+  return;
+}
+```
+
+### Check Element Visibility and Enabled State
+
+Always check if an element is both visible and enabled before interacting:
+
+```js
+const isVisible = await element.isVisible().catch(() => false);
+const isEnabled = await element.isEnabled().catch(() => false);
+
+if (isVisible && isEnabled) {
+  await element.click();
+}
+```
+
+## Best Practices
+
+When adding or updating tests:
+
+1. Always check if elements exist and are visible before interacting
+2. Use `.first()` when selecting elements to avoid strict mode violations
+3. Add error handling with `.catch()` and skip tests that can't run
+4. Don't depend on specific store implementations
+5. Don't add test-specific IDs to production code - use existing attributes
+6. Test the behavior, not the implementation
 
 ## Test Coverage
 
@@ -44,24 +149,6 @@ The `utils` directory contains helper functions for common test operations:
 - `triggerSkillRoll` - Triggers a skill roll for a character
 - `sendChatMessage` - Sends a test message in the chat
 
-## Running Tests
-
-To run the UI tests, ensure the E-RPG application is running on the default URL configured in `playwright.config.js` (http://localhost:5000), then:
-
-```bash
-# Install dependencies
-npm install
-
-# Run tests
-npm test
-
-# Run tests in headed mode (with browser UI visible)
-npm run test:headed
-
-# Run tests with specific browser
-npx playwright test --project=chromium
-```
-
 ## Test Reports
 
 After running tests, view the HTML report:
@@ -69,12 +156,3 @@ After running tests, view the HTML report:
 ```bash
 npx playwright show-report
 ```
-
-Test results are also stored in the `test-results` directory, and HTML reports in the `playwright-report` directory.
-
-## Notes for Test Development
-
-- Tests are designed to be resilient to different application states
-- Many tests will skip if the required UI elements are not found
-- Some tests may need application data (characters, messages) to be present
-- For actual file uploads, create a `test-assets` directory with test images 

@@ -1,20 +1,19 @@
-import traceback
 import uuid
 from dotenv import load_dotenv
 load_dotenv()
 
 import os
 import time
-from flask import request, jsonify, url_for, send_from_directory
+from flask import request, jsonify, send_from_directory
 from base_lore import get_base_lore, set_base_lore
 from dialog_history import DialogueMessage, append_to_dialog_history, get_dialogue_history, set_dialog_history
 from game_state import game_state
 from app_socket import send_socket_message, app, socketio
 from message_analyzers import decide_acting_character_for_master
 from update_scene import get_current_scene, set_current_scene
-from character import Character, get_character_by_id, get_characters, set_characters, set_character_active, update_character
+from character import get_characters
 from gm_persona import get_personas, get_persona_by_id, create_persona, remove_persona, toggle_favorite, set_default_persona, get_default_persona, persona_manager
-from ai_utils import set_default_api_key, update_api_key, remove_api_key, get_current_api_key, generate_response
+from ai_utils import set_default_api_key, update_api_key, remove_api_key, generate_response
 from tts_manager import tts
 from api.characters_router import emit_characters_updated, register_character_rest_api, register_character_socket_handlers, send_socket_response
 import base64

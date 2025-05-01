@@ -17,7 +17,7 @@ module.exports = defineConfig({
   reporter: 'html',
   use: {
     actionTimeout: 0,
-    baseURL: 'http://localhost:5000',
+    baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     // Mock all backend requests by default
