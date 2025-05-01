@@ -16,6 +16,7 @@ import CharacterList from './sidebar/CharacterList';
 import ConnectionStatus from './sidebar/ConnectionStatus';
 import NavigationButtons from './sidebar/NavigationButtons';
 import SaveGameSection from './sidebar/SaveGameSection';
+import VolumeControl from './sidebar/VolumeControl';
 
 interface SidebarProps {
   setActiveView: (view: string) => void;
@@ -93,6 +94,8 @@ const Sidebar: React.FC<SidebarProps> = observer(({ setActiveView, activeView })
         }}
         isConnected={socketService.isConnected}
       />
+      
+      <VolumeControl />
       
       <CharacterList 
         characters={characterStore.characters}

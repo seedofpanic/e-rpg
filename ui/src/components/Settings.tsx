@@ -23,6 +23,39 @@ const Settings: React.FC<SettingsProps> = observer(({ isOpen, onClose }) => {
       onClose();
     }
   };
+
+  // Test current volume with a sample sound
+  const testVoiceVolume = () => {
+    // Create a simple audio test using the Web Audio API instead of backend TTS
+    const audioContext = new AudioContext();
+    
+    // Create audio nodes
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+  
+    const compressor = audioContext.createDynamicsCompressor();
+    
+    // Set up oscillator with a more pleasant wavetable
+    oscillator.type = 'sine'; // triangle wave sounds smoother than sine
+    oscillator.frequency.setValueAtTime(392, audioContext.currentTime); // G4 note (more pleasant than A4)
+    
+    // Set up gain with envelope to avoid clicks
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    gainNode.gain.linearRampToValueAtTime(settingsStore.volume, audioContext.currentTime + 0.1); // Fade in
+    gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.6); // Fade out
+    
+    // Connect audio graph
+    oscillator.connect(gainNode);
+    gainNode.connect(compressor);
+    compressor.connect(audioContext.destination);
+    
+    // Play a gentle note
+    oscillator.start();
+    setTimeout(() => {
+      oscillator.stop();
+      audioContext.close();
+    }, 700); // Play for 700ms to allow for fade out
+  };
   
   // If not open, don't render
   if (!isOpen) return null;
@@ -48,6 +81,31 @@ const Settings: React.FC<SettingsProps> = observer(({ isOpen, onClose }) => {
               placeholder="Enter your Gemini API key"
             />
             <div className="form-text">Your API key is stored securely and used for AI processing.</div>
+          </div>
+          
+          {/* Voice Volume Control */}
+          <div className="mb-3">
+            <label htmlFor="voice-volume" className="form-label">Voice Volume: {Math.round(settingsStore.volume * 100)}%</label>
+            <div className="d-flex align-items-center">
+              <input 
+                type="range" 
+                className="form-range flex-grow-1 me-2" 
+                id="voice-volume" 
+                min="0" 
+                max="1" 
+                step="0.01"
+                value={settingsStore.volume} 
+                onChange={(e) => settingsStore.setVolume(parseFloat(e.target.value))} 
+              />
+              <button 
+                type="button" 
+                className="btn btn-sm btn-outline-secondary" 
+                onClick={testVoiceVolume}
+              >
+                Test
+              </button>
+            </div>
+            <div className="form-text">Adjust the volume of voice output.</div>
           </div>
           
           {/* Lore Settings */}

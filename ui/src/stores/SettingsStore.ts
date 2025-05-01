@@ -1,7 +1,10 @@
 import { makeAutoObservable } from "mobx";
 import socketService from "../services/api";
+import { audioPlayer } from "../services/audioPlayer";
 
 class SettingsStore {
+  volume: number = .3;
+
   updateSaveFilePath() {
     socketService.sendEvent('update_save_file_path', { filepath: this.saveFilePath });
   }
@@ -54,6 +57,7 @@ class SettingsStore {
     constructor() {
         makeAutoObservable(this);
         this.initializeSocket();
+        this.setVolume(this.volume);
     }
     initializeSocket() {
          // Setup listeners
@@ -103,6 +107,14 @@ class SettingsStore {
         
         // Update lore
         socketService.sendEvent('update_lore', { lore: this.baseLore });
+    }
+    /**
+     * Set the volume for audio playback
+     * @param volume Volume level from 0.0 to 1.0
+     */
+    setVolume(volume: number) {
+      this.volume = Math.max(0, Math.min(1, volume));
+      audioPlayer.setGain(this.volume);
     }
 }
 

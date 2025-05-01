@@ -1,3 +1,5 @@
+import { makeAutoObservable } from "mobx";
+
 interface AudioData {
     audio: string;  // base64 encoded audio
     text: string;   // the text that was spoken
@@ -10,7 +12,19 @@ interface AudioData {
 export class AudioPlayer {
     private audioQueue: AudioData[] = [];
     private audioContext = new AudioContext();
+    private gainNode: GainNode;
     private isPlaying = false;
+    
+    constructor() {
+        this.gainNode = this.audioContext.createGain();
+        this.gainNode.connect(this.audioContext.destination);
+
+        makeAutoObservable(this);
+    }
+    
+    setGain(volume: number) {
+        this.gainNode.gain.value = volume;
+    }
     
     initialize(socketService: { on: (arg0: string, arg1: (data: AudioData) => void) => void }) {
         socketService.on('tts_audio', (data: AudioData) => {
@@ -76,8 +90,8 @@ export class AudioPlayer {
             console.log("Creating source");
             const source = this.audioContext.createBufferSource();
             source.buffer = audioBuffer;
-            console.log("Connecting to destination");
-            source.connect(this.audioContext.destination);
+            console.log("Connecting to gain node");
+            source.connect(this.gainNode);
             
             // When done, play the next audio in queue
             console.log("Setting onended");
@@ -93,5 +107,7 @@ export class AudioPlayer {
           this.playNextAudio();
         }
       };
-    
 }
+
+// Export a singleton instance
+export const audioPlayer = new AudioPlayer();

@@ -1033,4 +1033,21 @@ I'll add these where they make the most sense, likely after health bar styles */
 
 .healthButton:hover {
   background-color: rgba(60, 60, 60, 0.9);
+}
+
+/* Volume control section styles */
+.volumeControlSection {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  padding: 12px;
+  margin: 15px 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.volumeControlSection h5 {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 } 
