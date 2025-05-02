@@ -72,8 +72,13 @@ def analyzer_process(prompt: str):
     print("character_id: ", character_id)
     if not character:
         # find leader in characters or first character
-        character = next((char for char in characters.items() if char[1].is_leader), list(characters.keys())[0])
-    print("Using haracter_id: ", character.id)
+        character_item = next((char for char in characters.items() if char[1].is_leader), None)
+        if character_item:
+            character = character_item[1]  # Get the Character object from the tuple
+        else:
+            first_char_id = list(characters.keys())[0]
+            character = get_character_by_id(first_char_id)
+    print("Using character_id: ", character.id)
 
     process_character(character)
     

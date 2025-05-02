@@ -1,5 +1,4 @@
 import os
-from socket import SocketIO
 import time
 from collections import deque
 from google import genai
@@ -106,7 +105,7 @@ def generate_response(prompt, temperature=0.5, tools=None, api_key=None, defer_t
     if loggerOn:
         logger.info("Using API key for this request")
     
-    client = genai.Client(api_key=api_key)
+    client = genai.Client(api_key=api_key, http_options={"base_url": "http://localhost:3069"})
     
     # Make the API call
     if loggerOn:
